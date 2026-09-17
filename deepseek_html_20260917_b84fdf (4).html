@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizarFilm — Киностудия</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Roboto+Slab:wght@400;700;900&family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Rubik:wght@400;600;800&family=Cormorant+Garamond:wght@400;700&family=Caveat:wght@400;700&family=Press+Start+2P&family=Lobster&family=Pacifico&display=swap');
+
+:root {
+    --bg: #0a0a0c; --bg-2: #101014; --card: #14141a; --card-2: #0e0e12;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(229,9,20,0.4);
+    --text: #e8e8ea; --text-dim: #9a9aa2; --text-mute: #6a6a72;
+    --accent: #e50914; --accent-2: #f6121d; --gold: #f5c518;
+    --green: #22c55e; --pink: #ec4899; --blue: #3b82f6;
+    --font: 'Inter', system-ui, sans-serif;
+    --font-title: 'Inter', system-ui, sans-serif;
+    --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at top, rgba(229,9,20,0.08), transparent 60%);
+    min-height: 100vh; font-family: var(--font); color: var(--text);
+    padding: 20px 14px; display: flex; justify-content: center;
+}
+
+.paywall-screen {
+    position: fixed; inset: 0; background: #0a0a0c;
+    background-image: radial-gradient(ellipse at top, rgba(229,9,20,0.15), transparent 60%),
+        radial-gradient(ellipse at bottom, rgba(0,0,0,0.8), transparent 70%);
+    z-index: 10000; display: flex; align-items: center; justify-content: center;
+    padding: 20px; transition: opacity 0.4s, visibility 0.4s;
+}
+.paywall-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.paywall-box {
+    background: linear-gradient(145deg, #14141a, #0e0e12);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
+    padding: 40px 30px 32px; max-width: 480px; width: 100%;
+    text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    position: relative; overflow: hidden;
+}
+.paywall-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #e50914, transparent); }
+.paywall-logo { font-size: 34px; font-weight: 900; letter-spacing: -1px; background: linear-gradient(135deg, #fff 0%, #e50914 60%, #b0060f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+.paywall-sub { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: #6a6a72; font-weight: 500; margin-bottom: 24px; }
+.paywall-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+.paywall-desc { font-size: 13px; color: #9a9aa2; line-height: 1.6; margin-bottom: 20px; }
+.paywall-btn { display: block; width: 100%; padding: 16px; background: #e50914; border: none; color: #fff; border-radius: 14px; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: 0.2s; font-family: var(--font); text-decoration: none; text-align: center; margin-bottom: 10px; }
+.paywall-btn:hover { background: #f6121d; box-shadow: 0 8px 28px rgba(229,9,20,0.4); }
+.paywall-btn-donate { background: linear-gradient(135deg, #ec4899, #be185d); }
+.paywall-hint { font-size: 10px; color: #4a4a52; margin-top: 16px; line-height: 1.6; }
+
+.studio { max-width: 1400px; width: 100%; }
+.header { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.logo { display: flex; align-items: baseline; gap: 6px; }
+.logo h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; font-family: var(--font-title); background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, #b0060f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.logo .tag { font-size: 9px; font-weight: 500; letter-spacing: 3px; color: var(--text-mute); text-transform: uppercase; }
+.header-stats { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+.budget, .rep, .gen-count, .debt-count, .trend-badge, .season-badge, .crisis-badge {
+    padding: 8px 14px; border-radius: 40px; font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.budget { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: var(--green); }
+.budget.negative { color: #ef4444; background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); }
+.rep { background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.25); color: var(--gold); }
+.gen-count { background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.4); color: #f9a8d4; cursor: pointer; }
+.gen-count.low { animation: pulse-gen 1.5s infinite; }
+.debt-count { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; cursor: pointer; }
+.trend-badge { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; }
+.season-badge { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.4); color: #d8b4fe; }
+.crisis-badge { background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.5); color: #fca5a5; }
+@keyframes pulse-gen { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+.header-controls { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+.header-controls select,
+.header-controls .donate-mini,
+.header-controls .buy-mini,
+.header-controls .export-mini {
+    flex: 1 1 auto; min-width: 0; padding: 10px 14px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer; transition: 0.2s;
+    font-family: var(--font); text-decoration: none;
+    text-align: center; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.header-controls .buy-mini { background: linear-gradient(135deg, rgba(229,9,20,0.15), rgba(176,6,15,0.15)); border-color: rgba(229,9,20,0.4); color: #ff8a8a; }
+.header-controls .export-mini { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.15)); border-color: rgba(59,130,246,0.4); color: #93c5fd; }
+.header-controls .donate-mini { background: linear-gradient(135deg, rgba(236,72,153,0.15), rgba(190,24,93,0.15)); border-color: rgba(236,72,153,0.4); color: #f9a8d4; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; overflow-x: auto; border-bottom: 1px solid var(--border); scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { background: transparent; border: none; color: var(--text-mute); padding: 12px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: 0.2s; font-family: var(--font); flex-shrink: 0; }
+.tab:hover { color: var(--text-dim); }
+.tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.tab .count { display: inline-block; background: rgba(255,255,255,0.08); color: var(--text-dim); font-size: 10px; padding: 2px 7px; border-radius: 10px; margin-left: 5px; font-weight: 700; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+.panel-box {
+    background: linear-gradient(145deg, var(--card), var(--card-2));
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 20px 22px; margin-bottom: 20px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    position: relative; overflow: hidden;
+}
+.panel-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.6; }
+.panel-label { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.panel-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+
+.input-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+input[type="text"], input[type="number"], select, textarea {
+    padding: 13px 16px; background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border); border-radius: 12px;
+    color: var(--text); font-size: 14px; font-family: var(--font);
+    outline: none; transition: 0.2s; width: 100%;
+}
+input::placeholder, textarea::placeholder { color: var(--text-mute); font-weight: 300; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); background: rgba(0,0,0,0.6); box-shadow: 0 0 0 4px rgba(229,9,20,0.1); }
+textarea { resize: vertical; min-height: 80px; font-family: var(--font); }
+select { cursor: pointer; }
+select option { background: var(--card); color: var(--text); }
+
+.btn { background: var(--accent); border: none; color: #fff; padding: 13px 22px; border-radius: 12px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font); }
+.btn:hover { background: var(--accent-2); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(229,9,20,0.35); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim); }
+.btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--text); box-shadow: none; }
+.btn-small { padding: 8px 12px; font-size: 11px; border-radius: 9px; }
+.btn-gold { background: var(--gold); color: #1a1a0a; }
+.btn-blue { background: var(--blue); }
+.btn-green { background: var(--green); color: #0a1a0a; }
+.btn-rec { background: #dc2626; }
+.btn-rec.recording { background: #16a34a; animation: pulse-rec 1s infinite; }
+@keyframes pulse-rec { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.grid-films { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+.sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.sub-card { background: linear-gradient(180deg, var(--card), var(--card-2)); border: 1px solid var(--border); border-radius: 18px; padding: 22px 20px; display: flex; flex-direction: column; transition: 0.25s; position: relative; overflow: hidden; }
+.sub-card:hover { border-color: var(--border-hover); transform: translateY(-3px); }
+.sub-card.featured { border-color: rgba(245,197,24,0.5); }
+.sub-card.featured::before { content: 'ВЫГОДНО'; position: absolute; top: 12px; right: -28px; background: var(--gold); color: #1a1a0a; font-size: 9px; font-weight: 800; letter-spacing: 1.5px; padding: 4px 32px; transform: rotate(35deg); }
+.sub-name { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.sub-price { font-size: 26px; font-weight: 900; color: var(--accent); margin-bottom: 4px; }
+.sub-price small { font-size: 12px; color: var(--text-mute); font-weight: 500; }
+.sub-gen { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.sub-gen strong { color: var(--gold); font-weight: 800; font-size: 14px; }
+.sub-features { list-style: none; margin-bottom: 16px; flex: 1; }
+.sub-features li { font-size: 11px; color: var(--text-dim); padding: 4px 0; display: flex; align-items: center; gap: 6px; }
+.sub-features li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.sub-btn { width: 100%; justify-content: center; }
+
+.person-card { background: linear-gradient(180deg, var(--card), var(--card-2)); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: 0.25s; }
+.person-card:hover { border-color: var(--border-hover); transform: translateY(-3px); }
+.person-photo { width: 100%; aspect-ratio: 1/1; background: #0a0a0c; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border-bottom: 1px solid var(--border); }
+.person-photo img { width: 100%; height: 100%; object-fit: cover; }
+.person-photo .ph-icon { width: 100%; height: 100%; object-fit: contain; padding: 20px; opacity: 0.15; filter: grayscale(1); }
+.person-photo .rank-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.75); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 800; color: var(--gold); }
+.person-photo .age-badge { position: absolute; top: 10px; right: 78px; background: rgba(0,0,0,0.75); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: #93c5fd; }
+.person-photo .role-badge { position: absolute; top: 10px; left: 10px; background: rgba(229,9,20,0.9); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
+.person-photo .retire-badge { position: absolute; bottom: 44px; left: 10px; background: rgba(107,114,128,0.95); color: #fff; font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 6px; }
+.person-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.person-name { font-size: 16px; font-weight: 700; color: var(--text); word-break: break-word; }
+.person-meta { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 3px 9px; border-radius: 20px; font-size: 10px; color: var(--text-dim); font-weight: 500; }
+.chip.genre { background: rgba(229,9,20,0.08); border-color: rgba(229,9,20,0.2); color: #ff8a8a; }
+.chip.contract { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); color: #93c5fd; }
+.chip.scandal { background: rgba(220,38,38,0.15); border-color: rgba(220,38,38,0.4); color: #fca5a5; }
+.chip.injury { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+.chip.type { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.4); color: #d8b4fe; }
+.chip.stat { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #86efac; }
+.chip.agent { background: rgba(245,197,24,0.1); border-color: rgba(245,197,24,0.4); color: #fde047; }
+.person-fee { font-size: 13px; font-weight: 700; color: var(--green); }
+.person-actions { display: flex; gap: 6px; margin-top: auto; padding-top: 8px; flex-wrap: wrap; }
+.person-actions .btn-small { flex: 1 1 auto; min-width: 70px; }
+
+.fatigue-badge { position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.75); border-radius: 8px; padding: 6px 10px; font-size: 10px; color: #fbbf24; font-weight: 600; }
+.fatigue-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.fatigue-bar-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444); transition: width 0.3s; }
+
+.film-card { background: linear-gradient(180deg, var(--card), var(--card-2)); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; }
+.film-card:hover { border-color: var(--border-hover); transform: translateY(-4px); }
+.film-poster { width: 100%; aspect-ratio: 2/3; background: #0a0a0c; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border-bottom: 1px solid var(--border); }
+.film-poster img { width: 100%; height: 100%; object-fit: cover; }
+.film-poster .ph { width: 60%; height: 60%; object-fit: contain; opacity: 0.15; filter: grayscale(1); }
+.film-poster .poster-label { position: absolute; top: 12px; left: 12px; background: rgba(229,9,20,0.9); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 2px; padding: 5px 10px; border-radius: 6px; text-transform: uppercase; }
+.film-poster .award-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #f5c518, #ffd633); color: #1a1a0a; font-size: 9px; font-weight: 800; padding: 5px 10px; border-radius: 6px; }
+.film-poster .sequel-badge { position: absolute; top: 44px; right: 12px; background: rgba(59,130,246,0.9); color: #fff; font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 6px; }
+.film-poster .poster-cast { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 20px 12px 10px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.cast-face { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gold); background: #222; flex-shrink: 0; }
+.cast-face.main { border-color: #fbbf24; border-width: 3px; width: 46px; height: 46px; }
+.cast-face img { width: 100%; height: 100%; object-fit: cover; }
+.cast-face.fallback { display: flex; align-items: center; justify-content: center; }
+.cast-face.fallback img { object-fit: contain; padding: 6px; opacity: 0.5; }
+
+.film-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.film-title { font-size: 18px; font-weight: 800; line-height: 1.2; color: #fff; word-break: break-word; }
+.film-genre { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+.film-logline { font-size: 12px; line-height: 1.5; color: var(--text-dim); font-style: italic; border-left: 2px solid rgba(229,9,20,0.4); padding-left: 10px; }
+.film-econ { display: flex; flex-wrap: wrap; gap: 6px; }
+.econ-item { flex: 1 1 45%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+.econ-item .label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mute); font-weight: 600; }
+.econ-item .value { font-size: 14px; font-weight: 800; margin-top: 2px; }
+.econ-item .value.plus { color: var(--green); }
+.econ-item .value.minus { color: #ef4444; }
+.film-scenes { border-top: 1px solid var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.scene { font-size: 11px; line-height: 1.5; color: #c8c8ce; }
+.scene-header { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mute); margin-bottom: 3px; }
+.scene-dialogue { color: var(--text-mute); font-style: italic; margin-top: 3px; padding-left: 8px; border-left: 1px solid var(--border); }
+.film-rating { display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border); }
+.film-rating .stars { color: var(--gold); font-size: 13px; letter-spacing: 1px; }
+.film-rating .val { font-weight: 700; color: var(--gold); font-size: 13px; }
+.sequel-btn { width: 100%; justify-content: center; margin-top: 4px; }
+
+.reviews-block { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.reviews-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mute); margin-bottom: 8px; }
+.review-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; }
+.review-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.review-name { font-size: 11px; font-weight: 700; color: var(--text); }
+.review-stars { font-size: 10px; color: var(--gold); }
+.review-text { font-size: 11px; color: var(--text-dim); line-height: 1.5; font-style: italic; }
+
+.empty { grid-column: 1 / -1; text-align: center; padding: 60px 24px; background: linear-gradient(145deg, var(--bg-2), var(--bg)); border: 1px dashed var(--border); border-radius: 20px; }
+.empty img { width: 64px; height: 64px; object-fit: contain; opacity: 0.25; filter: grayscale(1); margin-bottom: 16px; }
+.empty strong { display: block; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.empty p { font-size: 12px; color: var(--text-mute); font-weight: 300; }
+
+.loader { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
+.modal-bg.open { display: flex; }
+.modal { background: linear-gradient(145deg, var(--card), var(--card-2)); border: 1px solid var(--border); border-radius: 22px; padding: 24px 22px; max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
+.modal h2 { font-size: 18px; font-weight: 800; margin-bottom: 18px; color: #fff; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; margin-bottom: 6px; }
+.form-row { display: flex; gap: 10px; }
+.form-row > * { flex: 1; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.modal-actions .btn { flex: 1 1 100px; justify-content: center; }
+.photo-preview { width: 90px; height: 90px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: #000; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.photo-preview .ph { width: 60%; height: 60%; object-fit: contain; opacity: 0.3; filter: grayscale(1); }
+
+.person-pick { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; cursor: pointer; transition: 0.15s; }
+.person-pick:hover { border-color: var(--accent); background: rgba(229,9,20,0.05); }
+.person-pick.selected { border-color: var(--accent); background: rgba(229,9,20,0.1); }
+.person-pick img, .person-pick .ph-mini { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #222; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.person-pick .ph-mini img { width: 100%; height: 100%; object-fit: contain; padding: 4px; opacity: 0.5; }
+.person-pick-info { flex: 1; min-width: 0; }
+.person-pick-name { font-size: 13px; font-weight: 600; word-break: break-word; }
+.person-pick-meta { font-size: 11px; color: var(--text-mute); }
+
+.role-section { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.role-section-title { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.role-section-title::before { content: ''; width: 12px; height: 1px; background: var(--accent); }
+.role-section-title.writer-role::before { background: #a855f7; }
+.role-section-title.main-role::before { background: var(--gold); }
+.role-section-title.supp-role::before { background: var(--blue); }
+.role-section-title.dir-role::before { background: var(--green); }
+.role-empty { font-size: 12px; color: var(--text-mute); font-style: italic; padding: 8px 0; }
+.role-picked { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(229,9,20,0.08); border: 1px solid rgba(229,9,20,0.3); border-radius: 10px; }
+.role-picked.main-picked { background: rgba(245,197,24,0.08); border-color: rgba(245,197,24,0.4); }
+.role-picked.dir-picked { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.4); }
+.role-picked.writer-picked { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.4); }
+.role-picked img, .role-picked .ph-mini { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #222; flex-shrink: 0; }
+.role-picked-info { flex: 1; min-width: 0; }
+.role-picked-name { font-size: 13px; font-weight: 700; }
+.role-picked-meta { font-size: 11px; color: var(--text-mute); }
+.role-picked .remove-role { background: rgba(220,38,38,0.2); border: 1px solid rgba(220,38,38,0.4); color: #fca5a5; padding: 4px 10px; font-size: 10px; border-radius: 6px; cursor: pointer; font-family: var(--font); }
+.role-pick-btn { width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border); border-radius: 10px; color: var(--text-dim); font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.15s; font-family: var(--font); }
+.role-pick-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(229,9,20,0.05); }
+
+.budget-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.budget-opt { padding: 12px 14px; background: rgba(0,0,0,0.3); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.15s; text-align: center; }
+.budget-opt:hover { border-color: var(--accent); }
+.budget-opt.selected { border-color: var(--accent); background: rgba(229,9,20,0.08); }
+.budget-opt-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.budget-opt-desc { font-size: 10px; color: var(--text-mute); }
+
+.bank-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.bank-card { padding: 16px 18px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 14px; }
+.bank-card-title { font-size: 14px; font-weight: 800; margin-bottom: 6px; color: #fff; }
+.bank-card-desc { font-size: 11px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px; }
+.bank-card-rate { font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 10px; }
+.active-loan { padding: 14px 16px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.4); border-radius: 12px; margin-bottom: 8px; }
+.active-loan-title { font-size: 13px; font-weight: 700; color: #fca5a5; margin-bottom: 4px; }
+.active-loan-desc { font-size: 11px; color: var(--text-dim); }
+
+/* ДИАГРАММЫ */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+}
+.chart-card {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+}
+.chart-card-title {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent);
+    font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+}
+.chart-card-title-left {
+    display: flex; align-items: center; gap: 6px;
+}
+.chart-card-title-left::before {
+    content: ''; width: 12px; height: 2px; background: var(--accent);
+}
+.chart-current {
+    font-size: 13px; color: var(--text); font-weight: 800;
+    letter-spacing: 0; text-transform: none;
+}
+.chart-svg { width: 100%; height: 140px; display: block; }
+.chart-line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.chart-area { opacity: 0.12; }
+.chart-dot { r: 4; }
+.chart-grid-line { stroke: rgba(255,255,255,0.05); stroke-width: 1; }
+.chart-empty { color: var(--text-mute); font-size: 11px; font-style: italic; text-align: center; padding: 40px 0; }
+.chart-legend { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; font-size: 10px; color: var(--text-dim); }
+.chart-legend-item { display: flex; align-items: center; gap: 4px; }
+.chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.leaderboard { display: flex; flex-direction: column; gap: 8px; }
+.leader-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; transition: 0.15s; cursor: pointer; }
+.leader-row:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+.leader-row.you { background: rgba(229,9,20,0.08); border-color: rgba(229,9,20,0.35); }
+.leader-rank { font-size: 18px; font-weight: 900; color: var(--gold); text-align: center; }
+.leader-info { min-width: 0; }
+.leader-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.leader-meta { font-size: 11px; color: var(--text-mute); }
+.leader-meta .sep { margin: 0 6px; opacity: 0.4; }
+.leader-val { text-align: right; font-size: 12px; line-height: 1.4; }
+.leader-val .rep-val { font-weight: 800; color: var(--gold); }
+.leader-val .bud-val { font-weight: 700; color: var(--green); font-size: 13px; }
+.leader-val .open-hint { font-size: 10px; color: var(--accent); margin-top: 2px; opacity: 0.7; }
+
+.notif { background: linear-gradient(145deg, rgba(245,197,24,0.08), rgba(245,197,24,0.03)); border: 1px solid rgba(245,197,24,0.3); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.notif.danger { background: linear-gradient(145deg, rgba(220,38,38,0.1), rgba(220,38,38,0.03)); border-color: rgba(220,38,38,0.4); }
+.notif.success { background: linear-gradient(145deg, rgba(34,197,94,0.1), rgba(34,197,94,0.03)); border-color: rgba(34,197,94,0.4); }
+.notif-title { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+.notif.danger .notif-title { color: #fca5a5; }
+.notif.success .notif-title { color: #86efac; }
+.notif-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.notif-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.notif-actions .btn-small { flex: 1 1 auto; }
+
+.achievements { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.ach-card { padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; display: flex; gap: 10px; align-items: center; }
+.ach-card.unlocked { border-color: rgba(245,197,24,0.4); background: rgba(245,197,24,0.05); }
+.ach-icon { font-size: 20px; opacity: 0.4; color: var(--gold); flex-shrink: 0; }
+.ach-card.unlocked .ach-icon { opacity: 1; }
+.ach-info { flex: 1; min-width: 0; }
+.ach-name { font-size: 12px; font-weight: 700; }
+.ach-desc { font-size: 10px; color: var(--text-mute); }
+
+.stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.stat-card { padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; }
+.stat-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; margin-bottom: 6px; }
+.stat-val { font-size: 18px; font-weight: 800; color: #fff; }
+
+.builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .builder-grid { grid-template-columns: 1fr; } }
+.builder-section { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+.builder-section-title { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.builder-section-title::before { content: ''; width: 16px; height: 1px; background: var(--accent); }
+.palette-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.palette-chip { width: 44px; height: 44px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: 0.15s; }
+.palette-chip:hover { transform: scale(1.08); border-color: rgba(255,255,255,0.3); }
+.font-options { display: flex; gap: 8px; flex-wrap: wrap; }
+.font-option { padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; font-size: 12px; font-weight: 600; color: var(--text-dim); cursor: pointer; transition: 0.15s; }
+.font-option:hover { border-color: var(--accent); color: var(--text); }
+.font-option.active { border-color: var(--accent); background: rgba(229,9,20,0.1); color: var(--text); }
+.tab-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.tab-name-row label { font-size: 11px; color: var(--text-dim); flex: 0 0 100px; font-weight: 500; }
+.tab-name-row input { flex: 1; padding: 6px 10px; font-size: 12px; background: rgba(0,0,0,0.4); }
+.builder-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+.footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); text-align: center; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-mute); font-weight: 500; }
+
+@media (max-width: 640px) {
+    .logo h1 { font-size: 22px; }
+    .panel-box { padding: 16px 16px; }
+    .modal { padding: 20px 16px; }
+    .form-row { flex-direction: column; }
+    .grid, .grid-films { grid-template-columns: 1fr; }
+    .leader-row { grid-template-columns: 36px 1fr; gap: 10px; }
+    .leader-val { grid-column: 1 / -1; text-align: left; display: flex; gap: 12px; padding-top: 6px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .input-row .btn { width: 100%; }
+    .modal-actions .btn { flex: 1 1 100%; }
+    .budget-picker { grid-template-columns: 1fr; }
+    .bank-grid { grid-template-columns: 1fr; }
+    .charts-grid { grid-template-columns: 1fr; }
+    .builder-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="paywall-screen hidden" id="paywallScreen">
+    <div class="paywall-box">
+        <button id="paywallCloseBtn" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#9a9aa2;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;">×</button>
+        <div class="paywall-logo">BizarFilm</div>
+        <div class="paywall-sub">Studio Access</div>
+        <div class="paywall-title">Пакеты генераций</div>
+        <div class="paywall-desc">Одна генерация = один фильм.<br>Бесплатно доступна 1 генерация.</div>
+        <div id="paywallPacks" style="text-align:left; margin-bottom:20px;"></div>
+        <a href="https://dalink.to/asdfysl" target="_blank" rel="noopener" class="paywall-btn paywall-btn-donate">Перейти к оплате</a>
+        <div class="paywall-hint">После оплаты напишите в поддержку — вам выдадут код.</div>
+    </div>
+</div>
+
+<div class="studio">
+    <div class="header">
+        <div class="header-top">
+            <div class="logo">
+                <h1>BizarFilm</h1>
+                <span class="tag">Studio</span>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="rep" id="repDisplay">Репутация: 0</div>
+            <div class="budget" id="budgetDisplay">Бюджет: 500.0K $</div>
+            <div class="gen-count" id="genDisplay">Генерации: 1</div>
+            <div class="debt-count" id="debtDisplay" style="display:none;">Долг: 0 $</div>
+            <div class="trend-badge" id="trendDisplay">Тренд: —</div>
+            <div class="season-badge" id="seasonDisplay">Сезон: 1</div>
+        </div>
+        <div class="header-controls">
+            <select id="difficultySelect">
+                <option value="easy">Легкий</option>
+                <option value="normal" selected>Нормально</option>
+                <option value="hard">Сложно</option>
+                <option value="veryhard">Очень сложно</option>
+                <option value="hardcore">Хардкор</option>
+            </select>
+            <button class="buy-mini" id="buyMiniBtn">Купить генерации</button>
+            <button class="export-mini" id="exportBtn">Сохранить</button>
+            <button class="export-mini" id="importBtn">Загрузить</button>
+            <a href="https://dalink.to/asdfysl" target="_blank" rel="noopener" class="donate-mini">Поддержать</a>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="films">Фильмы</button>
+        <button class="tab" data-tab="actors">Актёры <span class="count" id="actorsCount">0</span></button>
+        <button class="tab" data-tab="directors">Режиссёры <span class="count" id="directorsCount">0</span></button>
+        <button class="tab" data-tab="writers">Сценаристы <span class="count" id="writersCount">0</span></button>
+        <button class="tab" data-tab="bank">Банк</button>
+        <button class="tab" data-tab="investors">Инвесторы</button>
+        <button class="tab" data-tab="studio">Студия</button>
+        <button class="tab" data-tab="chart">Диаграммы</button>
+        <button class="tab" data-tab="leaders">Лидеры</button>
+        <button class="tab" data-tab="subs">Подписки</button>
+        <button class="tab" data-tab="redesign">Конструктор</button>
+    </div>
+
+    <div class="panel active" id="panel-films">
+        <div class="panel-box">
+            <div class="panel-label">Бюджет съёмок</div>
+            <div class="budget-picker" id="budgetPicker">
+                <div class="budget-opt" data-budget="cheap"><div class="budget-opt-name">Дешёвый</div><div class="budget-opt-desc">-30% расход, -20% касса</div></div>
+                <div class="budget-opt selected" data-budget="medium"><div class="budget-opt-name">Средний</div><div class="budget-opt-desc">Стандарт</div></div>
+                <div class="budget-opt" data-budget="blockbuster"><div class="budget-opt-name">Блокбастер</div><div class="budget-opt-desc">+50% расход, +80% касса</div></div>
+            </div>
+        </div>
+        <div class="panel-box">
+            <div class="panel-label">Роли</div>
+            <div class="role-section">
+                <div class="role-section-title writer-role">Сценарист</div>
+                <div id="roleWriter"></div>
+                <button class="role-pick-btn" id="pickWriterBtn" style="margin-top:8px;">Выбрать сценариста</button>
+            </div>
+            <div class="role-section">
+                <div class="role-section-title dir-role">Режиссёр</div>
+                <div id="roleDirector"></div>
+                <button class="role-pick-btn" id="pickDirectorBtn" style="margin-top:8px;">Выбрать режиссёра</button>
+            </div>
+            <div class="role-section">
+                <div class="role-section-title main-role">Главная роль (x2 гонорар)</div>
+                <div id="roleMainActor"></div>
+                <button class="role-pick-btn" id="pickMainBtn" style="margin-top:8px;">Выбрать главного актёра</button>
+            </div>
+            <div class="role-section">
+                <div class="role-section-title supp-role">Второстепенные</div>
+                <div id="roleSupporting"></div>
+                <button class="role-pick-btn" id="pickSuppBtn" style="margin-top:8px;">Добавить второстепенного</button>
+            </div>
+        </div>
+        <div class="panel-box">
+            <div class="panel-label">Сценарий</div>
+            <div id="notifArea"></div>
+            <div class="input-row">
+                <input type="text" id="filmInput" placeholder="Идея фильма..." value="Кибер-детектив расследует исчезновение памяти в неоновом Токио">
+                <input type="text" id="genreInput" placeholder="Жанр" value="киберпанк-нуар">
+                <button class="btn btn-rec" id="recBtn">Запись</button>
+                <button class="btn" id="generateBtn">Снять фильм (1 генерация)</button>
+            </div>
+            <div id="recStatus" style="font-size:12px;color:var(--text-mute);margin-top:10px;"></div>
+        </div>
+        <div id="filmsGrid" class="grid grid-films"></div>
+    </div>
+
+    <div class="panel" id="panel-actors">
+        <div class="panel-box">
+            <div class="panel-label">Кастинг-агентство</div>
+            <div class="input-row"><button class="btn" id="addActorBtn">Добавить актёра</button></div>
+        </div>
+        <div id="actorsGrid" class="grid"></div>
+    </div>
+
+    <div class="panel" id="panel-directors">
+        <div class="panel-box">
+            <div class="panel-label">Режиссёрский цех</div>
+            <div class="input-row"><button class="btn" id="addDirectorBtn">Добавить режиссёра</button></div>
+        </div>
+        <div id="directorsGrid" class="grid"></div>
+    </div>
+
+    <div class="panel" id="panel-writers">
+        <div class="panel-box">
+            <div class="panel-label">Сценарный отдел</div>
+            <div class="input-row"><button class="btn" id="addWriterBtn">Добавить сценариста</button></div>
+        </div>
+        <div id="writersGrid" class="grid"></div>
+    </div>
+
+    <div class="panel" id="panel-bank">
+        <div class="panel-box">
+            <div class="panel-label">Кредиты</div>
+            <div class="bank-grid" id="bankGrid"></div>
+        </div>
+        <div class="panel-box">
+            <div class="panel-label">Активные кредиты</div>
+            <div id="activeLoans"></div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-investors">
+        <div class="panel-box">
+            <div class="panel-label">Продать долю</div>
+            <p style="font-size:12px;color:var(--text-mute);margin-bottom:14px;">Максимум 3 инвестора, суммарно не более 100%.</p>
+            <div class="bank-grid" id="investorsGrid"></div>
+        </div>
+        <div class="panel-box">
+            <div class="panel-label">Активные инвесторы</div>
+            <div id="activeInvestors"></div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-studio">
+        <div class="panel-box">
+            <div class="panel-label">Статистика</div>
+            <div class="stats-row" id="statsRow"></div>
+        </div>
+        <div class="panel-box">
+            <div class="panel-label">Достижения</div>
+            <div class="achievements" id="achievementsGrid"></div>
+        </div>
+        <div class="panel-box">
+            <div class="panel-label">Маркетинг</div>
+            <select id="marketingSelect">
+                <option value="none">Без рекламы (0 $)</option>
+                <option value="small">Малая (10K $, +20%)</option>
+                <option value="medium">Средняя (50K $, +50%)</option>
+                <option value="large">Крупная (150K $, +100%)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-chart">
+        <div class="panel-box">
+            <div class="panel-label">Диаграммы студии</div>
+            <div class="charts-grid" id="chartsGrid"></div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-leaders">
+        <div class="panel-box">
+            <div class="panel-label">Таблица лидеров</div>
+            <div class="leaderboard" id="leaderboard"></div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-subs">
+        <div class="panel-box">
+            <div class="panel-label">Пакеты генераций</div>
+            <div class="sub-grid" id="subGrid"></div>
+        </div>
+        <div class="panel-box">
+            <div class="panel-label">Пароль или код</div>
+            <div class="input-row">
+                <input type="text" id="codeInput" placeholder="Пароль или код...">
+                <button class="btn" id="activateBtn">Активировать</button>
+            </div>
+            <div id="codeStatus" style="font-size:12px;color:var(--text-mute);margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-redesign">
+        <div class="panel-box">
+            <div class="panel-label">Конструктор темы</div>
+            <div class="builder-grid">
+                <div class="builder-section">
+                    <div class="builder-section-title">Палитры</div>
+                    <div class="palette-row" id="paletteRow"></div>
+                </div>
+                <div class="builder-section">
+                    <div class="builder-section-title">Шрифт</div>
+                    <div class="font-options" id="fontOptions"></div>
+                </div>
+                <div class="builder-section" style="grid-column: 1 / -1;">
+                    <div class="builder-section-title">Названия</div>
+                    <div class="tab-name-row"><label>Студия</label><input type="text" id="nameStudio" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Фильмы</label><input type="text" id="nameTabFilms" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Актёры</label><input type="text" id="nameTabActors" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Режиссёры</label><input type="text" id="nameTabDirectors" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Сценаристы</label><input type="text" id="nameTabWriters" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Банк</label><input type="text" id="nameTabBank" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Инвесторы</label><input type="text" id="nameTabInvestors" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Студия</label><input type="text" id="nameTabStudio" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Диаграммы</label><input type="text" id="nameTabChart" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Лидеры</label><input type="text" id="nameTabLeaders" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Подписки</label><input type="text" id="nameTabSubs" maxlength="20"></div>
+                    <div class="tab-name-row"><label>Конструктор</label><input type="text" id="nameTabRedesign" maxlength="20"></div>
+                </div>
+            </div>
+            <div class="builder-actions">
+                <button class="btn" id="applyBuilderBtn">Применить</button>
+                <button class="btn btn-ghost" id="resetDesignBtn">Сброс</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">BizarFilm · AI Cinema Studio</div>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modalContent"></div></div>
+
+<script>
+(function() {
+'use strict';
+
+const API_KEY = '1000301374.302578.fnVIvx4fJs6kLECAdkhiKuJXnOh9rVg07lGzvNxW';
+const DEEPSEEK_URL = 'https://caila.io/api/anthropic/v1/messages';
+const DEEPSEEK_MODEL = 'deepseek-v4-flash';
+const GEMINI_URL = 'https://caila.io/api/google/v1beta/models/gemini-2.5-flash-image:generateContent';
+
+const ADMIN_PASSWORD = '12367807766';
+const STREAMER_PASSWORD = '1527859642';
+const STREAMER_GENERATIONS = 100;
+const CODES_URL = 'codes.json';
+
+const IMG = {
+    placeholder: 'images/placeholder.png',
+    actor: 'images/actor.png',
+    director: 'images/director.png',
+    poster: 'images/poster.png'
+};
+
+const PACKS = [
+    { id: 'starter',  name: 'Стартовый', price: 100, gen: 5,  features: ['5 генераций', 'Все функции'] },
+    { id: 'standard', name: 'Стандарт',  price: 200, gen: 12, features: ['12 генераций', 'Все функции'], featured: true },
+    { id: 'pro',      name: 'Профи',     price: 500, gen: 35, features: ['35 генераций', 'Все функции'] },
+    { id: 'studio',   name: 'Студия',    price: 1000, gen: 80, features: ['80 генераций', 'Все функции'] }
+];
+
+const PALETTES = [
+    { name: 'Классика', bg: '#0a0a0c', bg2: '#101014', card: '#14141a', accent: '#e50914', text: '#e8e8ea' },
+    { name: 'Нуар', bg: '#0c0c0c', bg2: '#151515', card: '#1a1a1a', accent: '#b8860b', text: '#e0e0e0' },
+    { name: 'Кибер', bg: '#0a0612', bg2: '#120a1e', card: '#1a1028', accent: '#ec4899', text: '#e8e0f0' },
+    { name: 'Океан', bg: '#051018', bg2: '#0a1a26', card: '#0f2436', accent: '#06b6d4', text: '#e0f0f8' },
+    { name: 'Природа', bg: '#0a0f0a', bg2: '#101810', card: '#151f15', accent: '#22c55e', text: '#e0f0e0' },
+    { name: 'Закат', bg: '#150808', bg2: '#201010', card: '#2a1515', accent: '#f59e0b', text: '#f0e8e0' },
+    { name: 'Фиолет', bg: '#0c0612', bg2: '#150a1e', card: '#1e1028', accent: '#a855f7', text: '#ede0f5' },
+    { name: 'Светлая', bg: '#f5f5f7', bg2: '#e8e8ec', card: '#ffffff', accent: '#e50914', text: '#1a1a1a' },
+    { name: 'Золото', bg: '#0a0a08', bg2: '#141410', card: '#1a1a14', accent: '#f5c518', text: '#f0ede0' },
+    { name: 'Кровь', bg: '#0c0404', bg2: '#150808', card: '#1e0a0a', accent: '#dc2626', text: '#ede0e0' }
+];
+
+const FONTS = [
+    { id: 'inter', name: 'Inter', css: "'Inter', system-ui, sans-serif" },
+    { id: 'playfair', name: 'Playfair', css: "'Playfair Display', serif" },
+    { id: 'mono', name: 'JetBrains Mono', css: "'JetBrains Mono', monospace" },
+    { id: 'oswald', name: 'Oswald', css: "'Oswald', sans-serif" },
+    { id: 'bebas', name: 'Bebas Neue', css: "'Bebas Neue', sans-serif" },
+    { id: 'rubik', name: 'Rubik', css: "'Rubik', sans-serif" },
+    { id: 'cormorant', name: 'Cormorant', css: "'Cormorant Garamond', serif" },
+    { id: 'lobster', name: 'Lobster', css: "'Lobster', cursive" },
+    { id: 'pacifico', name: 'Pacifico', css: "'Pacifico', cursive" },
+    { id: 'caveat', name: 'Caveat', css: "'Caveat', cursive" },
+    { id: 'pressstart', name: 'Press Start 2P', css: "'Press Start 2P', monospace" },
+    { id: 'robotoslab', name: 'Roboto Slab', css: "'Roboto Slab', serif" }
+];
+
+const DIFFICULTY = {
+    easy:     { name: 'Легкий',       startBudget: 1000000, feeMul: 0.5, boxMul: 2.5, minRank: 0,  stealChance: 0.10, scandalChance: 0.05 },
+    normal:   { name: 'Нормально',    startBudget: 500000,  feeMul: 1.0, boxMul: 1.5, minRank: 20, stealChance: 0.20, scandalChance: 0.10 },
+    hard:     { name: 'Сложно',       startBudget: 250000,  feeMul: 1.5, boxMul: 1.0, minRank: 40, stealChance: 0.30, scandalChance: 0.15 },
+    veryhard: { name: 'Очень сложно', startBudget: 100000,  feeMul: 2.0, boxMul: 0.7, minRank: 60, stealChance: 0.45, scandalChance: 0.20 },
+    hardcore: { name: 'Хардкор',      startBudget: 50000,   feeMul: 3.0, boxMul: 0.4, minRank: 75, stealChance: 0.60, scandalChance: 0.25 }
+};
+
+const LOAN_TYPES = [
+    { id: 'small',  name: 'Микрокредит', amount: 200000,  rate: 0.15, term: 5,  desc: 'Небольшая сумма' },
+    { id: 'medium', name: 'Стандарт',    amount: 500000,  rate: 0.22, term: 8,  desc: 'Средний кредит' },
+    { id: 'large',  name: 'Крупный',     amount: 1500000, rate: 0.35, term: 12, desc: 'Большие обязательства' }
+];
+
+const INVESTOR_TYPES = [
+    { id: 'i10', name: 'Пассивный',    share: 10, amount: 400000,  bonus: 0,    bonusDesc: 'Забирает 10% прибыли' },
+    { id: 'i25', name: 'Активный',     share: 25, amount: 1200000, bonus: 0.10, bonusDesc: '+10% к кассе' },
+    { id: 'i50', name: 'Крупный',      share: 50, amount: 3000000, bonus: 0.25, bonusDesc: '+25% к кассе' },
+    { id: 'i75', name: 'Мажоритарный', share: 75, amount: 7000000, bonus: 0.50, bonusDesc: '+50% к кассе и +100K $ каждый фильм' }
+];
+
+const GENRE_TRENDS = ['драма', 'триллер', 'фантастика', 'комедия', 'хоррор', 'боевик', 'мелодрама', 'детектив', 'нуар', 'фэнтези'];
+
+const COMPETITOR_NAMES = ['Metro Pictures', 'Nord Film', 'Atlas Studio', 'Vega Cinema', 'Orion Pictures', 'Sigma Films', 'Prime Vision', 'Delta Production'];
+
+const ACHIEVEMENTS = [
+    { id: 'first_film',  name: 'Первый фильм',    desc: 'Снять 1 фильм',     check: s => s.films.length >= 1 },
+    { id: 'five_films',  name: 'Пятёрка',          desc: 'Снять 5 фильмов',   check: s => s.films.length >= 5 },
+    { id: 'ten_films',   name: 'Десятка',          desc: 'Снять 10 фильмов',  check: s => s.films.length >= 10 },
+    { id: 'million',     name: 'Миллион',          desc: 'Заработать 1M $',   check: s => s.totalEarned >= 1000000 },
+    { id: 'ten_million', name: 'Десять миллионов', desc: 'Заработать 10M $',  check: s => s.totalEarned >= 10000000 },
+    { id: 'rep_500',     name: 'Легенда',          desc: 'Репутация 500',     check: s => s.reputation >= 500 },
+    { id: 'oscar',       name: 'Оскар',            desc: 'Получить Оскар',    check: s => s.films.some(f => f.oscar) },
+    { id: 'sequel',      name: 'Франшиза',         desc: 'Снять сиквел',      check: s => s.films.some(f => f.isSequel) },
+    { id: 'three_writers', name: 'Сценарный цех',  desc: '3 сценариста в базе', check: s => s.writers.length >= 3 }
+];
+
+const DEFAULT_DESIGN = {
+    bg: '#0a0a0c', bg2: '#101014', card: '#14141a',
+    accent: '#e50914', text: '#e8e8ea',
+    fontTitle: 'inter', radius: 12,
+    tabFilms: 'Фильмы', tabActors: 'Актёры',
+    tabDirectors: 'Режиссёры', tabWriters: 'Сценаристы',
+    tabBank: 'Банк', tabInvestors: 'Инвесторы',
+    tabStudio: 'Студия', tabChart: 'Диаграммы',
+    tabLeaders: 'Лидеры', tabSubs: 'Подписки', tabRedesign: 'Конструктор',
+    studioName: 'BizarFilm'
+};
+
+const DEFAULT_STATE = {
+    budget: 500000,
+    reputation: 0,
+    totalEarned: 0,
+    generations: 1,
+    difficulty: 'normal',
+    actors: [], directors: [], writers: [], films: [],
+    competitors: [],
+    achievements: [], notifications: [],
+    marketing: 'none',
+    filmBudget: 'medium',
+    loans: [], investors: [],
+    taxCounter: 0,
+    trendGenre: '—',
+    season: 1,
+    seasonWins: 0,
+    history: [],
+    design: JSON.parse(JSON.stringify(DEFAULT_DESIGN))
+};
+
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let castSelection = { writer: null, director: null, mainActor: null, supportingActors: [] };
+let codesDB = { codes: [] };
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtMoney(n) {
+    n = Math.round(n);
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '';
+    if (abs >= 1e9) return sign + (abs/1e9).toFixed(2) + 'B $';
+    if (abs >= 1e6) return sign + (abs/1e6).toFixed(2) + 'M $';
+    if (abs >= 1e3) return sign + (abs/1e3).toFixed(1) + 'K $';
+    return sign + abs + ' $';
+}
+
+async function callDeepSeek(prompt, maxTokens) {
+    const res = await fetch(DEEPSEEK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: DEEPSEEK_MODEL, max_tokens: maxTokens || 2500, temperature: 0.9, messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!res.ok) throw new Error('DeepSeek ' + res.status);
+    const data = await res.json();
+    const raw = data?.content?.[0]?.text || data?.choices?.[0]?.message?.content || '';
+    if (!raw) throw new Error('Пустой ответ');
+    return raw;
+}
+
+async function callGemini(prompt) {
+    const res = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': API_KEY },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    if (!res.ok) throw new Error('Gemini ' + res.status);
+    const data = await res.json();
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    for (const p of parts) {
+        if (p.inlineData && p.inlineData.data) {
+            return 'data:' + (p.inlineData.mimeType || 'image/png') + ';base64,' + p.inlineData.data;
+        }
+    }
+    return null;
+}
+
+function parseScript(raw) {
+    const out = { title: 'Без названия', genre: 'Драма', logline: '', scenes: [] };
+    let m;
+    m = raw.match(/(?:НАЗВАНИЕ|Название|TITLE)[:\s]*[«"']?(.+?)[»"']?(?:\n|$)/i);
+    if (m) out.title = m[1].trim().replace(/[«»"']/g,'');
+    m = raw.match(/(?:ЖАНР|Жанр|GENRE)[:\s]*(.+?)(?:\n|$)/i);
+    if (m) out.genre = m[1].trim();
+    m = raw.match(/(?:ЛОГЛАЙН|Логлайн|LOGLINE)[:\s]*(.+?)(?:\n\n|\n(?:СЦЕНА|SCENE)|$)/is);
+    if (m) out.logline = m[1].trim();
+    const sceneRe = /(?:СЦЕНА|Сцена|SCENE)\s*(\d+)[:\s]*\n?([\s\S]*?)(?=(?:СЦЕНА|Сцена|SCENE)\s*\d+|$)/gi;
+    let sm;
+    while ((sm = sceneRe.exec(raw)) !== null) {
+        const body = sm[2].trim();
+        if (!body) continue;
+        const lines = body.split('\n').map(l => l.trim()).filter(l => l);
+        const header = lines[0] || ('Сцена ' + sm[1]);
+        const rest = lines.slice(1);
+        let dialogue = '';
+        const desc = [];
+        for (const l of rest) {
+            if (/^[А-ЯA-Z][А-ЯA-Z\s]{1,20}:/.test(l) || /^\(.*\)$/.test(l)) dialogue += (dialogue ? '\n' : '') + l;
+            else desc.push(l);
+        }
+        out.scenes.push({ num: sm[1], header, description: desc.join(' '), dialogue });
+    }
+    if (out.scenes.length === 0) out.scenes.push({ num: '1', header: 'Основная сцена', description: raw.slice(0, 800), dialogue: '' });
+    if (!out.logline) out.logline = raw.split(/[.!?]/)[0].slice(0, 250);
+    return out;
+}
+
+// ===== ДИАГРАММЫ =====
+function buildSmoothPath(points) {
+    if (points.length < 2) return '';
+    if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+    let path = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i - 1] || points[i];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[i + 2] || p2;
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
+    return path;
+}
+
+function renderSmoothChart(data, color, width, height, pad) {
+    if (!data || data.length === 0) return '<div class="chart-empty">Мало данных</div>';
+    if (data.length === 1) return `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><circle cx="${width/2}" cy="${height/2}" r="4" fill="${color}"/></svg>`;
+    const values = data.map(d => d.value);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const range = maxVal - minVal || 1;
+    const innerW = width - pad * 2;
+    const innerH = height - pad * 2;
+    const points = data.map((d, i) => ({
+        x: pad + (i / (data.length - 1)) * innerW,
+        y: pad + innerH - ((d.value - minVal) / range) * innerH
+    }));
+    const linePath = buildSmoothPath(points);
+    const areaPath = linePath + ` L ${points[points.length-1].x.toFixed(1)} ${height - pad} L ${points[0].x.toFixed(1)} ${height - pad} Z`;
+    let grid = '';
+    for (let i = 0; i <= 3; i++) {
+        const y = pad + (innerH / 3) * i;
+        grid += `<line class="chart-grid-line" x1="${pad}" y1="${y}" x2="${width - pad}" y2="${y}"/>`;
+    }
+    const last = points[points.length - 1];
+    return `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        ${grid}
+        <path class="chart-area" d="${areaPath}" fill="${color}"/>
+        <path class="chart-line" d="${linePath}" stroke="${color}"/>
+        <circle class="chart-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="4" fill="${color}" stroke="${color}"/>
+    </svg>`;
+}
+
+function renderCharts() {
+    const grid = document.getElementById('chartsGrid');
+    if (!grid) return;
+    const history = state.history || [];
+    if (history.length === 0) {
+        grid.innerHTML = '<div class="chart-empty" style="grid-column:1/-1;">Пока нет данных. Снимите фильм — диаграммы появятся.</div>';
+        return;
+    }
+    const W = 300, H = 140, PAD = 10;
+    const budgetData = history.map(h => ({ value: h.budget }));
+    const repData = history.map(h => ({ value: h.reputation }));
+    const filmsData = history.map(h => ({ value: h.filmsCount }));
+    const boxData = history.map(h => ({ value: h.totalBox }));
+    const profitData = history.map(h => ({ value: h.totalProfit }));
+    const actorsData = history.map(h => ({ value: h.actorsCount }));
+
+    grid.innerHTML = `
+        <div class="chart-card">
+            <div class="chart-card-title">
+                <div class="chart-card-title-left">Бюджет студии</div>
+                <div class="chart-current">${fmtMoney(budgetData[budgetData.length-1].value)}</div>
+            </div>
+            ${renderSmoothChart(budgetData, '#22c55e', W, H, PAD)}
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">
+                <div class="chart-card-title-left">Репутация</div>
+                <div class="chart-current">${repData[repData.length-1].value}</div>
+            </div>
+            ${renderSmoothChart(repData, '#f5c518', W, H, PAD)}
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">
+                <div class="chart-card-title-left">Фильмов снято</div>
+                <div class="chart-current">${filmsData[filmsData.length-1].value}</div>
+            </div>
+            ${renderSmoothChart(filmsData, '#3b82f6', W, H, PAD)}
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">
+                <div class="chart-card-title-left">Общая касса</div>
+                <div class="chart-current">${fmtMoney(boxData[boxData.length-1].value)}</div>
+            </div>
+            ${renderSmoothChart(boxData, '#ec4899', W, H, PAD)}
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">
+                <div class="chart-card-title-left">Общая прибыль</div>
+                <div class="chart-current">${fmtMoney(profitData[profitData.length-1].value)}</div>
+            </div>
+            ${renderSmoothChart(profitData, '#e50914', W, H, PAD)}
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">
+                <div class="chart-card-title-left">Актёров в студии</div>
+                <div class="chart-current">${actorsData[actorsData.length-1].value}</div>
+            </div>
+            ${renderSmoothChart(actorsData, '#a855f7', W, H, PAD)}
+        </div>
+    `;
+}
+
+function recordHistory() {
+    if (!state.history) state.history = [];
+    const totalBox = state.films.reduce((s, f) => s + f.boxOffice, 0);
+    const totalFee = state.films.reduce((s, f) => s + f.totalFee, 0);
+    state.history.push({
+        label: 'Film ' + state.films.length,
+        budget: state.budget,
+        reputation: state.reputation,
+        filmsCount: state.films.length,
+        totalBox: totalBox,
+        totalProfit: totalBox - totalFee,
+        actorsCount: state.actors.length
+    });
+    if (state.history.length > 40) state.history = state.history.slice(-40);
+}
+
+// ===== ГЕНЕРАЦИЯ =====
+function generatePerson(role) {
+    const FIRST_NAMES = ['Александр', 'Иван', 'Пётр', 'Николай', 'Сергей', 'Дмитрий', 'Андрей', 'Михаил', 'Владимир', 'Олег', 'Борис', 'Юрий'];
+    const LAST_NAMES = ['Смирнов', 'Иванов', 'Петров', 'Кузнецов', 'Соколов', 'Попов', 'Лебедев', 'Козлов', 'Новиков', 'Морозов'];
+    const rank = rand(20, 85);
+    const rankMul = 0.3 + (rank / 100) * 2.7;
+    const baseFee = Math.round((10000 + Math.random() * 40000) * rankMul * 3);
+    const genres = [];
+    const gPool = [...GENRE_TRENDS];
+    for (let i = 0; i < 3; i++) {
+        const idx = Math.floor(Math.random() * gPool.length);
+        genres.push(gPool.splice(idx, 1)[0]);
+    }
+    const age = role === 'actor' ? rand(22, 60) : role === 'director' ? rand(35, 70) : rand(25, 65);
+    return {
+        id: uid(), role,
+        name: FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)] + ' ' + LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)],
+        rank, baseFee, age, genres,
+        photo: null, description: '',
+        fatigue: 0, contract: 0, scandal: 0, injury: 0,
+        ampula: null, retired: false, agent: false
+    };
+}
+
+function generateCompetitorPerson(role) {
+    const p = generatePerson(role);
+    return p;
+}
+
+function generateCompetitorFilm() {
+    const words = ['Тень', 'Последний', 'Забытый', 'Холодный', 'Красный', 'Тихий', 'Ночной', 'Сломанный', 'Вечный', 'Тёмный'];
+    const nouns = ['город', 'путь', 'рассвет', 'след', 'дом', 'эксперимент', 'мир', 'берег', 'человек', 'сигнал'];
+    return {
+        id: uid(),
+        title: words[Math.floor(Math.random() * words.length)] + ' ' + nouns[Math.floor(Math.random() * nouns.length)],
+        genre: GENRE_TRENDS[Math.floor(Math.random() * GENRE_TRENDS.length)],
+        plot: 'Детектив расследует исчезновение в городе. Находит больше, чем искал.',
+        boxOffice: rand(200000, 5000000),
+        rating: (2.5 + Math.random() * 2.5).toFixed(1)
+    };
+}
+
+function initCompetitors() {
+    state.competitors = COMPETITOR_NAMES.slice(0, 5).map(n => {
+        const actors = [], directors = [];
+        for (let i = 0; i < rand(3, 5); i++) actors.push(generateCompetitorPerson('actor'));
+        for (let i = 0; i < rand(1, 2); i++) directors.push(generateCompetitorPerson('director'));
+        const films = [];
+        for (let i = 0; i < rand(2, 5); i++) {
+            const f = generateCompetitorFilm();
+            f.mainActorName = actors.length > 0 ? actors[Math.floor(Math.random() * actors.length)].name : '—';
+            f.directorName = directors.length > 0 ? directors[Math.floor(Math.random() * directors.length)].name : '—';
+            f.supportingNames = actors.filter(() => Math.random() > 0.6).slice(0, 2).map(a => a.name);
+            films.push(f);
+        }
+        return {
+            id: uid(), name: n,
+            budget: 200000 + Math.random() * 800000,
+            films: films.length,
+            reputation: Math.floor(Math.random() * 300),
+            actors, directors, filmList: films
+        };
+    });
+}
+
+function save() {
+    try { localStorage.setItem('bizarfilm_v13', JSON.stringify(state)); } catch(e) {}
+}
+
+function load() {
+    try {
+        const raw = localStorage.getItem('bizarfilm_v13') || localStorage.getItem('bizarfilm_state_v12');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+            state.design = Object.assign(JSON.parse(JSON.stringify(DEFAULT_DESIGN)), parsed.design || {});
+            ['actors','directors','writers','films','competitors','achievements','notifications','loans','investors','history'].forEach(k => {
+                if (!Array.isArray(state[k])) state[k] = [];
+            });
+            if (state.competitors.length === 0) initCompetitors();
+        } else initCompetitors();
+    } catch(e) { initCompetitors(); }
+}
+
+function calcFee(baseFee, rank, isMain) {
+    const d = DIFFICULTY[state.difficulty];
+    const rankMul = 0.3 + (rank / 100) * 2.7;
+    const mainMul = isMain ? 2.0 : 1.0;
+    return Math.round(baseFee * rankMul * d.feeMul * mainMul);
+}
+
+function getBudgetMultipliers() {
+    const b = state.filmBudget;
+    if (b === 'cheap') return { cost: 0.7, box: 0.8 };
+    if (b === 'blockbuster') return { cost: 1.5, box: 1.8 };
+    return { cost: 1.0, box: 1.0 };
+}
+
+function calcBoxOffice(film) {
+    const allActors = [film.mainActor, ...(film.supportingActors || [])].filter(Boolean);
+    const totalRank = (film.directorRank || 0) + allActors.reduce((s,a) => s + (a.rank||0), 0);
+    const avgRank = totalRank / (1 + allActors.length);
+    const mainBonus = film.mainActor ? 1.3 : 1.0;
+    const base = avgRank * 8000 * mainBonus;
+    const d = DIFFICULTY[state.difficulty];
+    const luck = 0.7 + Math.random() * 0.8;
+    const repBonus = 1 + state.reputation / 5000;
+    const mkt = { none: 1, small: 1.2, medium: 1.5, large: 2.0 }[state.marketing] || 1;
+    const bm = getBudgetMultipliers();
+    const investorBonus = 1 + state.investors.reduce((s, i) => s + (i.bonus || 0), 0);
+    let trendBonus = 1.0;
+    if (film.genre && state.trendGenre && film.genre.toLowerCase().includes(state.trendGenre)) trendBonus = 1.5;
+    let ampulaBonus = 1.0;
+    if (film.mainActor && film.mainActor.id && film.genre) {
+        const actor = state.actors.find(a => a.id === film.mainActor.id);
+        if (actor && actor.ampula && !film.genre.toLowerCase().includes(actor.ampula)) ampulaBonus = 0.8;
+    }
+    return Math.round(base * d.boxMul * luck * repBonus * mkt * bm.box * trendBonus * ampulaBonus * investorBonus);
+}
+
+async function aiCastForFilm(idea, genre) {
+    const actors = state.actors, directors = state.directors, writers = state.writers;
+    const minRank = DIFFICULTY[state.difficulty].minRank;
+    if (directors.length === 0 || actors.length < 2) return null;
+    const dirList = directors.map(d => `ID:${d.id} | ${d.name} | ранг ${d.rank}`).join('\n');
+    const actList = actors.map(a => `ID:${a.id} | ${a.name} | ранг ${a.rank}`).join('\n');
+    const writerList = writers.map(w => `ID:${w.id} | ${w.name} | ранг ${w.rank}`).join('\n');
+    const prompt = `Ты кастинг-директор. Идея: "${idea}", жанр: "${genre}", мин. ранг: ${minRank}.
+
+СЦЕНАРИСТЫ:
+${writerList || 'нет'}
+
+РЕЖИССЁРЫ:
+${dirList}
+
+АКТЁРЫ:
+${actList}
+
+Верни СТРОГО JSON:
+{"writerId":"...","directorId":"...","mainActorId":"...","supportingIds":["...","..."],"reason":"..."}`;
+    try {
+        const raw = await callDeepSeek(prompt, 500);
+        const jm = raw.match(/\{[\s\S]*\}/);
+        if (jm) {
+            const p = JSON.parse(jm[0]);
+            return {
+                writer: writers.find(w => w.id === p.writerId) || null,
+                director: directors.find(d => d.id === p.directorId),
+                mainActor: actors.find(a => a.id === p.mainActorId),
+                supporting: (p.supportingIds || []).map(id => actors.find(a => a.id === id)).filter(Boolean),
+                reason: p.reason || ''
+            };
+        }
+    } catch(e) {}
+    return null;
+}
+
+function checkSteal() {
+    const d = DIFFICULTY[state.difficulty];
+    if (state.actors.length === 0) return;
+    if (Math.random() > d.stealChance) return;
+    const victim = state.actors[Math.floor(Math.random() * state.actors.length)];
+    const thief = state.competitors[Math.floor(Math.random() * state.competitors.length)];
+    state.notifications.push({
+        id: uid(), type: 'steal',
+        actorId: victim.id, actorName: victim.name,
+        thiefId: thief.id, thiefName: thief.name,
+        offer: Math.round(victim.baseFee * (1.5 + Math.random())),
+        date: Date.now()
+    });
+}
+
+function checkScandal() {
+    const d = DIFFICULTY[state.difficulty];
+    if (state.actors.length === 0) return;
+    if (Math.random() > d.scandalChance) return;
+    const victim = state.actors[Math.floor(Math.random() * state.actors.length)];
+    const reasons = ['попал в скандал', 'замечен в драке', 'оскорбил журналиста', 'провалил интервью', 'уличён в плагиате'];
+    const reason = reasons[Math.floor(Math.random() * reasons.length)];
+    state.notifications.push({
+        id: uid(), type: 'scandal',
+        actorId: victim.id, actorName: victim.name,
+        reason, penalty: Math.round(victim.baseFee * 0.3),
+        date: Date.now()
+    });
+}
+
+function checkInjury() {
+    if (state.actors.length === 0) return;
+    if (Math.random() > 0.08) return;
+    const victim = state.actors[Math.floor(Math.random() * state.actors.length)];
+    state.notifications.push({
+        id: uid(), type: 'injury',
+        actorId: victim.id, actorName: victim.name,
+        days: rand(1, 3), date: Date.now()
+    });
+}
+
+function checkRetirement() {
+    state.actors.forEach(a => { if (a.age >= 65 && Math.random() < 0.15) a.retired = true; });
+}
+
+function resolveSteal(notifId, action) {
+    const idx = state.notifications.findIndex(n => n.id === notifId);
+    if (idx < 0) return;
+    const n = state.notifications[idx];
+    const actor = state.actors.find(a => a.id === n.actorId);
+    if (action === 'keep' && actor) {
+        const raise = Math.round(actor.baseFee * 0.5);
+        if (state.budget >= raise) { state.budget -= raise; actor.baseFee += raise; }
+        else state.actors = state.actors.filter(a => a.id !== actor.id);
+    } else if (action === 'release' && actor) {
+        state.actors = state.actors.filter(a => a.id !== actor.id);
+        state.budget += n.offer;
+    }
+    state.notifications.splice(idx, 1);
+    save(); renderAll();
+}
+
+function resolveScandal(notifId, action) {
+    const idx = state.notifications.findIndex(n => n.id === notifId);
+    if (idx < 0) return;
+    const n = state.notifications[idx];
+    const actor = state.actors.find(a => a.id === n.actorId);
+    if (action === 'fix' && actor) {
+        const cost = Math.round(n.penalty * 1.5);
+        if (state.budget >= cost) state.budget -= cost;
+        else { state.budget -= Math.min(state.budget, n.penalty); actor.scandal = 3; }
+    } else if (action === 'ignore' && actor) {
+        actor.scandal = 3; state.budget -= n.penalty;
+    }
+    state.notifications.splice(idx, 1);
+    save(); renderAll();
+}
+
+function resolveInjury(notifId, action) {
+    const idx = state.notifications.findIndex(n => n.id === notifId);
+    if (idx < 0) return;
+    const n = state.notifications[idx];
+    const actor = state.actors.find(a => a.id === n.actorId);
+    if (action === 'treat' && actor) {
+        const cost = n.days * 15000;
+        if (state.budget >= cost) state.budget -= cost;
+        else actor.injury = n.days;
+    } else if (action === 'wait' && actor) actor.injury = n.days;
+    state.notifications.splice(idx, 1);
+    save(); renderAll();
+}
+
+function applyFatigue(film) {
+    const all = [film.mainActor, ...(film.supportingActors || [])].filter(Boolean);
+    all.forEach(fa => {
+        const actor = state.actors.find(a => a.id === fa.id);
+        if (!actor) return;
+        actor.fatigue = Math.min(100, (actor.fatigue || 0) + rand(15, 30));
+        if (actor.fatigue >= 100) state.actors = state.actors.filter(a => a.id !== actor.id);
+    });
+}
+
+function restActor(actorId) {
+    const actor = state.actors.find(a => a.id === actorId);
+    if (!actor) return;
+    actor.fatigue = Math.max(0, (actor.fatigue || 0) - 40);
+    save(); renderAll();
+}
+
+function signContract(actorId) {
+    const actor = state.actors.find(a => a.id === actorId);
+    if (!actor) return;
+    const cost = Math.round(actor.baseFee * 2 * 0.8);
+    if (state.budget < cost) { alert('Не хватает бюджета'); return; }
+    state.budget -= cost; actor.contract = 3; actor.baseFee = Math.round(actor.baseFee * 0.8);
+    save(); renderAll();
+}
+
+function spendGeneration() {
+    if (state.generations <= 0) { showPaywall(); return false; }
+    state.generations -= 1; save(); renderHeader();
+    return true;
+}
+
+function showPaywall() {
+    document.getElementById('paywallScreen').classList.remove('hidden');
+    renderPaywallPacks();
+}
+
+function renderPaywallPacks() {
+    const el = document.getElementById('paywallPacks');
+    el.innerHTML = PACKS.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:6px;font-size:13px;"><span style="font-weight:600;color:#e8e8ea;">${p.name}</span><span style="color:#9a9aa2;">${p.gen} ген. — <strong style="color:#e50914;">${p.price} ₽</strong></span></div>`).join('');
+}
+
+// ===== СОЗДАНИЕ ФИЛЬМА =====
+async function createFilm(idea, genre, castOverride) {
+    if (!idea.trim()) { alert('Введите идею'); return; }
+    if (!genre.trim()) { alert('Введите жанр'); return; }
+
+    let cast = castOverride;
+    if (!cast || !cast.director || !cast.mainActor) {
+        cast = await aiCastForFilm(idea, genre);
+        if (!cast || !cast.director || !cast.mainActor) {
+            alert('Не удалось подобрать состав.');
+            return;
+        }
+    }
+
+    if (!spendGeneration()) return;
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Съёмка...';
+
+    try {
+        // Расширенный промпт — DeepSeek пишет больше
+        const scriptRaw = await callDeepSeek(
+            `Ты опытный сценарист студии BizarFilm. Идея: "${idea}", жанр: "${genre}".
+
+Напиши ПОДРОБНЫЙ мини-сценарий. Больше деталей, атмосферы, диалогов. Минимум 5 сцен.
+
+Формат:
+НАЗВАНИЕ: <название фильма>
+ЖАНР: ${genre}
+ЛОГЛАЙН: <1-2 предложения — суть>
+
+СЦЕНА 1: <заголовок>
+<подробное описание действия, 2-3 предложения>
+ПЕРСОНАЖ 1: <реплика>
+ПЕРСОНАЖ 2: <ответная реплика>
+
+СЦЕНА 2: <заголовок>
+<подробное описание>
+ПЕРСОНАЖ: <реплика>
+
+СЦЕНА 3: <заголовок>
+<подробное описание>
+ПЕРСОНАЖ: <реплика>
+
+СЦЕНА 4: <заголовок>
+<подробное описание>
+ПЕРСОНАЖ: <реплика>
+
+СЦЕНА 5: <заголовок>
+<подробное описание и финал>
+ПЕРСОНАЖ: <финальная реплика>
+
+Пиши атмосферно, кинематографично, на русском.`, 3000);
+        const script = parseScript(scriptRaw);
+        script.genre = genre;
+
+        const bm = getBudgetMultipliers();
+        const directorFee = calcFee(cast.director.baseFee, cast.director.rank, false);
+        const mainFee = calcFee(cast.mainActor.baseFee, cast.mainActor.rank, true);
+        const writerFee = cast.writer ? calcFee(cast.writer.baseFee, cast.writer.rank, false) : 0;
+        const supportingFees = (cast.supporting || []).map(a => ({
+            id: a.id, name: a.name, rank: a.rank, photo: a.photo,
+            fee: calcFee(a.baseFee, a.rank, false)
+        }));
+        const totalFee = Math.round((directorFee + mainFee + writerFee + supportingFees.reduce((s,a) => s + a.fee, 0)) * bm.cost);
+        const mktCost = { none: 0, small: 10000, medium: 50000, large: 150000 }[state.marketing] || 0;
+        const totalCost = totalFee + mktCost;
+
+        if (totalCost > state.budget) {
+            alert(`Не хватает бюджета! Нужно ${fmtMoney(totalCost)}, у вас ${fmtMoney(state.budget)}.`);
+            btn.disabled = false; btn.innerHTML = 'Снять фильм (1 генерация)';
+            return;
+        }
+
+        let poster = null;
+        try {
+            const castDesc = [cast.mainActor, ...(cast.supporting||[])].map(a => `${a.name} (ранг ${a.rank})`).join(', ');
+            poster = await callGemini(`Кинематографичный постер фильма "${script.title}" (жанр ${genre}). Логлайн: ${script.logline}. В ролях: ${castDesc}. Режиссёр: ${cast.director.name}. Премиум-афиша, вертикальный 2:3, без текста.`);
+        } catch(e) {}
+
+        const boxOffice = calcBoxOffice({
+            directorRank: cast.director.rank,
+            mainActor: { id: cast.mainActor.id, rank: cast.mainActor.rank },
+            supportingActors: supportingFees,
+            genre: genre
+        });
+        let profit = boxOffice - totalCost;
+
+        // РАСШИРЕННЫЕ ОТЗЫВЫ КРИТИКОВ
+        let reviews = [], avgRating = 3.0;
+        try {
+            const writerInfo = cast.writer ? `Сценарист: ${cast.writer.name} (ранг ${cast.writer.rank})` : 'Сценарист не указан';
+            const criticPrompt = `Ты кинокритик. Напиши 3 ПОДРОБНЫХ отзыва на фильм "${script.title}" (${genre}).
+
+Логлайн: ${script.logline}
+${writerInfo}
+Режиссёр: ${cast.director.name} (ранг ${cast.director.rank})
+Главная роль: ${cast.mainActor.name} (ранг ${cast.mainActor.rank})
+Второстепенные: ${(cast.supporting || []).map(a => `${a.name} (ранг ${a.rank})`).join(', ') || 'нет'}
+Бюджет: ${fmtMoney(totalCost)}
+Касса: ${fmtMoney(boxOffice)}
+
+Правила:
+- Один критик — строгий, второй — добрый, третий — нейтральный
+- Отзыв должен быть на 3-5 предложений — подробный, с примерами
+- Если касса > бюджета — отзывы положительные, если меньше — негативные
+- Учитывай ранг актёров и режиссёра
+
+Верни СТРОГО JSON-массив:
+[{"name":"Имя критика","style":"Строгий","rating":4,"text":"Подробный отзыв 3-5 предложений"},...]
+
+Рейтинг от 1 до 5.`;
+            const r = await callDeepSeek(criticPrompt, 1500);
+            const jm = r.match(/\[[\s\S]*\]/);
+            if (jm) {
+                reviews = JSON.parse(jm[0]);
+                if (reviews.length > 0) avgRating = reviews.reduce((s, x) => s + (parseFloat(x.rating) || 3), 0) / reviews.length;
+            }
+        } catch(e) {
+            avgRating = 3 + Math.random() * 2;
+            reviews = [{ name: 'Кинокритик', style: 'Нейтральный', rating: Math.round(avgRating), text: 'Отзыв недоступен.' }];
+        }
+
+        if (cast.writer && cast.writer.rank) {
+            const writerBonus = (cast.writer.rank - 50) / 200;
+            avgRating = Math.min(5, Math.max(1, avgRating + writerBonus));
+        }
+
+        processTax();
+        profit = processLoanPayments(profit);
+        profit = processInvestors(profit);
+        const majorBonus = state.investors.reduce((s, i) => i.share >= 75 ? s + 100000 : s, 0);
+        if (majorBonus > 0) state.budget += majorBonus;
+
+        state.budget += profit;
+        state.totalEarned += Math.max(0, boxOffice);
+        let repGain = Math.max(1, Math.floor(boxOffice / 50000));
+        if (avgRating >= 4.5) repGain += 30;
+        else if (avgRating >= 4) repGain += 20;
+        else if (avgRating >= 3) repGain += 10;
+        else if (avgRating < 2) repGain = Math.max(0, repGain - 20);
+        state.reputation += repGain;
+
+        applyFatigue({ mainActor: cast.mainActor, supportingActors: supportingFees });
+        [cast.mainActor, ...(cast.supporting||[])].forEach(a => {
+            const actor = state.actors.find(x => x.id === a.id);
+            if (actor && actor.contract > 0) actor.contract -= 1;
+        });
+
+        const qualityBonus = avgRating >= 4 ? 1.5 : avgRating >= 3 ? 1.0 : 0.5;
+        const mainActorRef = state.actors.find(a => a.id === cast.mainActor.id);
+        if (mainActorRef) {
+            const growth = (2 + Math.random() * 3) * qualityBonus * (1 - mainActorRef.rank / 120);
+            mainActorRef.rank = Math.min(100, Math.round(mainActorRef.rank + Math.max(1, growth)));
+            if (!mainActorRef.ampula && Math.random() < 0.3) mainActorRef.ampula = genre.toLowerCase().split('-')[0];
+        }
+        supportingFees.forEach(sf => {
+            const actor = state.actors.find(a => a.id === sf.id);
+            if (!actor) return;
+            const growth = (1 + Math.random() * 2) * qualityBonus * (1 - actor.rank / 120);
+            actor.rank = Math.min(100, Math.round(actor.rank + Math.max(1, growth)));
+        });
+        const dirRef = state.directors.find(d => d.id === cast.director.id);
+        if (dirRef) {
+            const growth = (2 + Math.random() * 2) * qualityBonus * (1 - dirRef.rank / 120);
+            dirRef.rank = Math.min(100, Math.round(dirRef.rank + Math.max(1, growth)));
+        }
+        if (cast.writer) {
+            const wRef = state.writers.find(w => w.id === cast.writer.id);
+            if (wRef) {
+                const growth = (1 + Math.random() * 3) * qualityBonus * (1 - wRef.rank / 120);
+                wRef.rank = Math.min(100, Math.round(wRef.rank + Math.max(1, growth)));
+            }
+        }
+
+        const film = {
+            id: uid(), title: script.title, genre, logline: script.logline, scenes: script.scenes,
+            writer: cast.writer ? { id: cast.writer.id, name: cast.writer.name, rank: cast.writer.rank, fee: writerFee } : null,
+            director: { id: cast.director.id, name: cast.director.name, rank: cast.director.rank, photo: cast.director.photo, fee: directorFee },
+            mainActor: { id: cast.mainActor.id, name: cast.mainActor.name, rank: cast.mainActor.rank, photo: cast.mainActor.photo, fee: mainFee },
+            supportingActors: supportingFees,
+            castReason: cast.reason || '',
+            poster, totalFee: totalCost, boxOffice, profit,
+            rating: avgRating.toFixed(1), reviews: reviews,
+            date: Date.now()
+        };
+        state.films.unshift(film);
+        state.marketing = 'none';
+        checkSteal(); checkScandal(); checkInjury(); checkRetirement(); updateTrend(); checkFestival();
+        recordHistory();
+        ACHIEVEMENTS.forEach(ach => {
+            if (!state.achievements.includes(ach.id) && ach.check(state)) state.achievements.push(ach.id);
+        });
+        castSelection = { writer: null, director: null, mainActor: null, supportingActors: [] };
+        save(); renderAll();
+    } catch(err) {
+        console.error(err);
+        alert('Ошибка: ' + err.message);
+    } finally {
+        btn.disabled = false; btn.innerHTML = 'Снять фильм (1 генерация)';
+    }
+}
+
+// ===== БАНК / ИНВЕСТОРЫ =====
+function takeLoan(loanId) {
+    const lt = LOAN_TYPES.find(l => l.id === loanId);
+    if (!lt) return;
+    if (!confirm(`Взять "${lt.name}" на ${fmtMoney(lt.amount)}?`)) return;
+    state.budget += lt.amount;
+    state.loans.push({ id: uid(), name: lt.name, amount: lt.amount, rate: lt.rate, term: lt.term, remaining: lt.term, totalDebt: Math.round(lt.amount * (1 + lt.rate)) });
+    save(); renderAll();
+}
+
+function payLoan(loanId) {
+    const loan = state.loans.find(l => l.id === loanId);
+    if (!loan) return;
+    if (state.budget < loan.totalDebt) { alert('Не хватает'); return; }
+    state.budget -= loan.totalDebt;
+    state.loans = state.loans.filter(l => l.id !== loanId);
+    save(); renderAll();
+}
+
+function processLoanPayments(profit) {
+    if (state.loans.length === 0) return profit;
+    let remaining = profit;
+    state.loans.forEach(loan => {
+        const payment = Math.min(remaining, Math.round(loan.totalDebt / loan.term));
+        if (payment > 0) { remaining -= payment; loan.totalDebt -= payment; loan.remaining -= 1; }
+    });
+    state.loans = state.loans.filter(l => l.totalDebt > 0 && l.remaining > 0);
+    return remaining;
+}
+
+function takeInvestor(invId) {
+    const it = INVESTOR_TYPES.find(i => i.id === invId);
+    if (!it) return;
+    if (state.investors.length >= 3) { alert('Максимум 3'); return; }
+    const currentShare = state.investors.reduce((s, i) => s + i.share, 0);
+    if (currentShare + it.share > 100) { alert(`Свободно только ${100 - currentShare}%`); return; }
+    if (!confirm(`Продать ${it.share}% за ${fmtMoney(it.amount)}?`)) return;
+    state.budget += it.amount;
+    state.investors.push({ id: uid(), name: it.name, share: it.share, amount: it.amount, bonus: it.bonus, buybackPrice: Math.round(it.amount * 1.5) });
+    save(); renderAll();
+}
+
+function buybackInvestor(invId) {
+    const inv = state.investors.find(i => i.id === invId);
+    if (!inv) return;
+    if (state.budget < inv.buybackPrice) { alert(`Нужно ${fmtMoney(inv.buybackPrice)}`); return; }
+    state.budget -= inv.buybackPrice;
+    state.investors = state.investors.filter(i => i.id !== invId);
+    save(); renderAll();
+}
+
+function processInvestors(profit) {
+    if (state.investors.length === 0) return profit;
+    const totalShare = state.investors.reduce((s, i) => s + i.share, 0);
+    return profit - Math.round(profit * (totalShare / 100));
+}
+
+function processTax() {
+    state.taxCounter++;
+    if (state.taxCounter % 5 === 0) {
+        const tax = Math.round(state.budget * 0.1);
+        state.budget -= tax;
+        state.notifications.push({ id: uid(), type: 'tax', tax, date: Date.now() });
+    }
+}
+
+function updateTrend() {
+    if (state.films.length > 0 && state.films.length % 5 === 0) {
+        state.trendGenre = GENRE_TRENDS[Math.floor(Math.random() * GENRE_TRENDS.length)];
+    }
+}
+
+function checkFestival() {
+    if (state.films.length > 0 && state.films.length % 10 === 0) {
+        const candidates = state.films.slice(0, 10).filter(f => !f.award);
+        if (candidates.length === 0) return;
+        const best = candidates.reduce((b, f) => parseFloat(f.rating) > parseFloat(b.rating) ? f : b);
+        best.award = 'Фестиваль';
+        state.reputation += 50; state.budget += 200000;
+        state.notifications.push({ id: uid(), type: 'festival', filmTitle: best.title, date: Date.now() });
+    }
+    if (state.films.length > 0 && state.films.length % 20 === 0) {
+        const candidates = state.films.slice(0, 20).filter(f => !f.oscar);
+        if (candidates.length === 0) return;
+        const best = candidates.reduce((b, f) => parseFloat(f.rating) > parseFloat(b.rating) ? f : b);
+        best.oscar = true;
+        state.reputation += 200; state.budget += 1000000;
+        state.notifications.push({ id: uid(), type: 'oscar', filmTitle: best.title, date: Date.now() });
+    }
+}
+
+// ===== РЕНДЕР =====
+function renderAll() {
+    try { renderHeader(); } catch(e) {}
+    try { renderFilms(); } catch(e) {}
+    try { renderPeople('actor'); } catch(e) {}
+    try { renderPeople('director'); } catch(e) {}
+    try { renderWriters(); } catch(e) {}
+    try { renderNotifications(); } catch(e) {}
+    try { renderStats(); } catch(e) {}
+    try { renderAchievements(); } catch(e) {}
+    try { renderLeaderboard(); } catch(e) {}
+    try { renderSubsPanel(); } catch(e) {}
+    try { renderCharts(); } catch(e) {}
+    try { renderCastRoles(); } catch(e) {}
+    try { renderBank(); } catch(e) {}
+    try { renderInvestors(); } catch(e) {}
+    try { applyDesign(); } catch(e) {}
+}
+
+function renderHeader() {
+    const el = document.getElementById('budgetDisplay');
+    if (el) { el.textContent = 'Бюджет: ' + fmtMoney(state.budget); el.classList.toggle('negative', state.budget < 0); }
+    const repEl = document.getElementById('repDisplay');
+    if (repEl) repEl.textContent = 'Репутация: ' + state.reputation;
+    const genEl = document.getElementById('genDisplay');
+    if (genEl) { genEl.textContent = 'Генерации: ' + state.generations; genEl.classList.toggle('low', state.generations <= 1); }
+    const debtEl = document.getElementById('debtDisplay');
+    if (debtEl) {
+        if (state.loans.length > 0) { debtEl.textContent = 'Долг: ' + fmtMoney(state.loans.reduce((s,l) => s + l.totalDebt, 0)); debtEl.style.display = ''; }
+        else debtEl.style.display = 'none';
+    }
+    const trendEl = document.getElementById('trendDisplay');
+    if (trendEl) trendEl.textContent = 'Тренд: ' + (state.trendGenre === '—' ? '—' : state.trendGenre);
+    const seasonEl = document.getElementById('seasonDisplay');
+    if (seasonEl) seasonEl.textContent = 'Сезон: ' + state.season;
+    const diffEl = document.getElementById('difficultySelect');
+    if (diffEl) diffEl.value = state.difficulty;
+    const ac = document.getElementById('actorsCount'); if (ac) ac.textContent = state.actors.length;
+    const dc = document.getElementById('directorsCount'); if (dc) dc.textContent = state.directors.length;
+    const wc = document.getElementById('writersCount'); if (wc) wc.textContent = state.writers.length;
+}
+
+function renderNotifications() {
+    const area = document.getElementById('notifArea');
+    if (!area) return;
+    if (state.notifications.length === 0) { area.innerHTML = ''; return; }
+    area.innerHTML = state.notifications.map(n => {
+        if (n.type === 'steal') return `<div class="notif"><div class="notif-title">Студия ${esc(n.thiefName)} переманивает</div><div class="notif-desc">Актёр <strong>${esc(n.actorName)}</strong> — предложение ${fmtMoney(n.offer)}.</div><div class="notif-actions"><button class="btn btn-small" data-steal-keep="${n.id}">Повысить</button><button class="btn btn-ghost btn-small" data-steal-release="${n.id}">Отпустить</button></div></div>`;
+        if (n.type === 'scandal') return `<div class="notif danger"><div class="notif-title">Скандал: ${esc(n.actorName)}</div><div class="notif-desc">${esc(n.reason)}. Штраф ${fmtMoney(n.penalty)}.</div><div class="notif-actions"><button class="btn btn-small" data-scandal-fix="${n.id}">Замять</button><button class="btn btn-ghost btn-small" data-scandal-ignore="${n.id}">Игнорировать</button></div></div>`;
+        if (n.type === 'injury') return `<div class="notif danger"><div class="notif-title">Травма: ${esc(n.actorName)}</div><div class="notif-desc">Выбыл на ${n.days} фильмов.</div><div class="notif-actions"><button class="btn btn-small" data-injury-treat="${n.id}">Лечить</button><button class="btn btn-ghost btn-small" data-injury-wait="${n.id}">Ждать</button></div></div>`;
+        if (n.type === 'tax') return `<div class="notif danger"><div class="notif-title">Налог</div><div class="notif-desc">Списано ${fmtMoney(n.tax)}.</div><div class="notif-actions"><button class="btn btn-ghost btn-small" data-dismiss-notif="${n.id}">Ок</button></div></div>`;
+        if (n.type === 'festival') return `<div class="notif success"><div class="notif-title">Фестиваль!</div><div class="notif-desc">"${esc(n.filmTitle)}" получил награду.</div><div class="notif-actions"><button class="btn btn-ghost btn-small" data-dismiss-notif="${n.id}">Ок</button></div></div>`;
+        if (n.type === 'oscar') return `<div class="notif success"><div class="notif-title">ОСКАР!</div><div class="notif-desc">"${esc(n.filmTitle)}" — Оскар.</div><div class="notif-actions"><button class="btn btn-ghost btn-small" data-dismiss-notif="${n.id}">Ок</button></div></div>`;
+        return '';
+    }).join('');
+}
+
+function renderCastRoles() {
+    const wEl = document.getElementById('roleWriter');
+    const dirEl = document.getElementById('roleDirector');
+    const mainEl = document.getElementById('roleMainActor');
+    const suppEl = document.getElementById('roleSupporting');
+    if (!wEl) return;
+    if (castSelection.writer) {
+        const w = castSelection.writer;
+        wEl.innerHTML = `<div class="role-picked writer-picked"><div class="ph-mini" style="width:36px;height:36px;border-radius:50%;background:rgba(168,85,247,0.2);display:flex;align-items:center;justify-content:center;color:#d8b4fe;font-weight:800;">${esc(w.name.charAt(0))}</div><div class="role-picked-info"><div class="role-picked-name">${esc(w.name)}</div><div class="role-picked-meta">Ранг ${w.rank} · ${fmtMoney(calcFee(w.baseFee, w.rank, false))}</div></div><button class="remove-role" data-remove-role="writer">Убрать</button></div>`;
+    } else wEl.innerHTML = `<div class="role-empty">Сценарист не выбран</div>`;
+
+    if (castSelection.director) {
+        const d = castSelection.director;
+        dirEl.innerHTML = `<div class="role-picked dir-picked">${d.photo ? `<img src="${d.photo}">` : `<div class="ph-mini"><img src="${IMG.director}"></div>`}<div class="role-picked-info"><div class="role-picked-name">${esc(d.name)}</div><div class="role-picked-meta">Ранг ${d.rank} · ${fmtMoney(calcFee(d.baseFee, d.rank, false))}</div></div><button class="remove-role" data-remove-role="director">Убрать</button></div>`;
+    } else dirEl.innerHTML = `<div class="role-empty">Режиссёр не выбран</div>`;
+
+    if (castSelection.mainActor) {
+        const a = castSelection.mainActor;
+        mainEl.innerHTML = `<div class="role-picked main-picked">${a.photo ? `<img src="${a.photo}">` : `<div class="ph-mini"><img src="${IMG.actor}"></div>`}<div class="role-picked-info"><div class="role-picked-name">${esc(a.name)}</div><div class="role-picked-meta">Ранг ${a.rank} · ${fmtMoney(calcFee(a.baseFee, a.rank, true))} (x2)</div></div><button class="remove-role" data-remove-role="mainActor">Убрать</button></div>`;
+    } else mainEl.innerHTML = `<div class="role-empty">Главный актёр не выбран</div>`;
+
+    if (castSelection.supportingActors.length > 0) {
+        suppEl.innerHTML = castSelection.supportingActors.map((a, i) => `<div class="role-picked" style="margin-bottom:6px;">${a.photo ? `<img src="${a.photo}">` : `<div class="ph-mini"><img src="${IMG.actor}"></div>`}<div class="role-picked-info"><div class="role-picked-name">${esc(a.name)}</div><div class="role-picked-meta">Ранг ${a.rank} · ${fmtMoney(calcFee(a.baseFee, a.rank, false))}</div></div><button class="remove-role" data-remove-supp="${i}">Убрать</button></div>`).join('');
+    } else suppEl.innerHTML = `<div class="role-empty">Второстепенные не выбраны</div>`;
+}
+
+function openRolePicker(roleType) {
+    const modal = document.getElementById('modalContent');
+    let list = [], title = '';
+    if (roleType === 'writer') { list = state.writers; title = 'Выберите сценариста'; }
+    else if (roleType === 'director') { list = state.directors; title = 'Выберите режиссёра'; }
+    else if (roleType === 'mainActor') { list = state.actors; title = 'Главный актёр'; }
+    else if (roleType === 'supporting') { list = state.actors; title = 'Второстепенный'; }
+    if (list.length === 0) {
+        modal.innerHTML = `<h2>${title}</h2><p style="color:var(--text-dim);">В базе нет.</p><div class="modal-actions"><button class="btn btn-ghost" id="cancelModalBtn">Ок</button></div>`;
+        document.getElementById('modalBg').classList.add('open');
+        document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+        return;
+    }
+    const listHTML = list.map(p => {
+        const isChosen = (roleType === 'writer' && castSelection.writer?.id === p.id) || (roleType === 'director' && castSelection.director?.id === p.id) || (roleType === 'mainActor' && castSelection.mainActor?.id === p.id) || (roleType === 'supporting' && castSelection.supportingActors.some(x => x.id === p.id));
+        const isPerson = roleType !== 'writer';
+        const avatar = isPerson ? (p.photo ? `<img src="${p.photo}">` : `<div class="ph-mini"><img src="${roleType === 'director' ? IMG.director : IMG.actor}"></div>`) : `<div class="ph-mini" style="background:rgba(168,85,247,0.2);color:#d8b4fe;font-weight:800;display:flex;align-items:center;justify-content:center;">${esc(p.name.charAt(0))}</div>`;
+        return `<div class="person-pick ${isChosen ? 'selected' : ''}" data-pick-id="${p.id}">${avatar}<div class="person-pick-info"><div class="person-pick-name">${esc(p.name)}${p.retired ? ' [ПЕНСИЯ]' : ''}</div><div class="person-pick-meta">Ранг ${p.rank} · ${p.age} лет · ${fmtMoney(calcFee(p.baseFee, p.rank, roleType === 'mainActor'))}${roleType === 'mainActor' ? ' (x2)' : ''}</div></div></div>`;
+    }).join('');
+    modal.innerHTML = `<h2>${title}</h2><div style="max-height:400px;overflow-y:auto;">${listHTML}</div><div class="modal-actions"><button class="btn btn-ghost" id="cancelModalBtn">Закрыть</button></div>`;
+    document.getElementById('modalBg').classList.add('open');
+    document.querySelectorAll('[data-pick-id]').forEach(el => {
+        el.addEventListener('click', () => {
+            const id = el.dataset.pickId;
+            if (roleType === 'writer') castSelection.writer = state.writers.find(x => x.id === id) || null;
+            else if (roleType === 'director') castSelection.director = state.directors.find(x => x.id === id) || null;
+            else if (roleType === 'mainActor') {
+                castSelection.mainActor = state.actors.find(x => x.id === id) || null;
+                castSelection.supportingActors = castSelection.supportingActors.filter(x => x.id !== id);
+            } else if (roleType === 'supporting') {
+                const a = state.actors.find(x => x.id === id);
+                if (!a) return;
+                if (castSelection.mainActor?.id === id) { alert('Уже главный'); return; }
+                const idx = castSelection.supportingActors.findIndex(x => x.id === id);
+                if (idx >= 0) castSelection.supportingActors.splice(idx, 1);
+                else castSelection.supportingActors.push(a);
+            }
+            save(); renderCastRoles(); closeModal();
+        });
+    });
+    document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+}
+
+function renderFilms() {
+    const grid = document.getElementById('filmsGrid');
+    if (!grid) return;
+    if (state.films.length === 0) {
+        grid.innerHTML = `<div class="empty"><img src="${IMG.placeholder}" onerror="this.style.display='none'"><strong>Студия готова</strong><p>Введите идею и жанр</p></div>`;
+        return;
+    }
+    grid.innerHTML = state.films.map(f => {
+        const posterHTML = f.poster ? `<img src="${f.poster}">` : `<img class="ph" src="${IMG.poster}" onerror="this.style.display='none'">`;
+        const mainFace = f.mainActor ? (f.mainActor.photo ? `<div class="cast-face main"><img src="${f.mainActor.photo}"></div>` : `<div class="cast-face main fallback"><img src="${IMG.actor}"></div>`) : '';
+        const suppFaces = (f.supportingActors || []).map(a => a.photo ? `<div class="cast-face"><img src="${a.photo}"></div>` : `<div class="cast-face fallback"><img src="${IMG.actor}"></div>`).join('');
+        const scenesHTML = f.scenes.map(s => `<div class="scene"><div class="scene-header">Сцена ${esc(s.num)} · ${esc(s.header)}</div><div>${esc(s.description)}</div>${s.dialogue ? `<div class="scene-dialogue">${esc(s.dialogue)}</div>` : ''}</div>`).join('');
+        const pc = f.profit >= 0 ? 'plus' : 'minus';
+        const ps = f.profit >= 0 ? '+' : '';
+        const stars = '★'.repeat(Math.round(parseFloat(f.rating))) + '☆'.repeat(5 - Math.round(parseFloat(f.rating)));
+        let reviewsHTML = '';
+        if (f.reviews && f.reviews.length > 0) {
+            reviewsHTML = `<div class="reviews-block"><div class="reviews-title">Отзывы кинокритиков</div>${f.reviews.map(r => {
+                const rStars = '★'.repeat(Math.round(parseFloat(r.rating) || 3)) + '☆'.repeat(5 - Math.round(parseFloat(r.rating) || 3));
+                return `<div class="review-item"><div class="review-head"><span class="review-name">${esc(r.name || 'Критик')} · ${esc(r.style || '')}</span><span class="review-stars">${rStars}</span></div><div class="review-text">"${esc(r.text || '')}"</div></div>`;
+            }).join('')}</div>`;
+        }
+        let sequelBtn = '';
+        if (!f.isSequel && f.profit > f.totalFee * 2) sequelBtn = `<button class="btn btn-blue sequel-btn" data-sequel="${f.id}">Снять сиквел</button>`;
+        const awardBadge = f.oscar ? `<div class="award-badge">ОСКАР</div>` : (f.award ? `<div class="award-badge">ФЕСТИВАЛЬ</div>` : '');
+        const writerLine = f.writer ? `<br>Сценарист: ${esc(f.writer.name)} (ранг ${f.writer.rank})` : '';
+        return `<div class="film-card"><div class="film-poster">${posterHTML}<div class="poster-label">BizarFilm</div>${awardBadge}<div class="poster-cast">${mainFace}${suppFaces}</div></div><div class="film-body"><div class="film-title">${esc(f.title)}</div><div class="film-genre">${esc(f.genre)}</div><div class="film-logline">${esc(f.logline)}</div><div class="film-rating"><span class="stars">${stars}</span><span class="val">${f.rating}/5</span></div><div class="film-econ"><div class="econ-item"><div class="label">Бюджет</div><div class="value minus">-${fmtMoney(f.totalFee)}</div></div><div class="econ-item"><div class="label">Касса</div><div class="value plus">+${fmtMoney(f.boxOffice)}</div></div><div class="econ-item" style="flex:1 1 100%"><div class="label">Прибыль</div><div class="value ${pc}">${ps}${fmtMoney(f.profit)}</div></div></div><div style="font-size:11px;color:var(--text-mute);">Режиссёр: ${esc(f.director.name)} (ранг ${f.director.rank})${writerLine}<br>Главный: ${f.mainActor ? esc(f.mainActor.name) : '—'}</div>${reviewsHTML}${sequelBtn}<div class="film-scenes">${scenesHTML}</div></div></div>`;
+    }).join('');
+}
+
+function renderPeople(role) {
+    const list = role === 'actor' ? state.actors : state.directors;
+    const grid = document.getElementById(role === 'actor' ? 'actorsGrid' : 'directorsGrid');
+    if (!grid) return;
+    const fallbackImg = role === 'actor' ? IMG.actor : IMG.director;
+    if (list.length === 0) {
+        grid.innerHTML = `<div class="empty"><img src="${fallbackImg}" onerror="this.style.display='none'"><strong>Пока никого</strong></div>`;
+        return;
+    }
+    grid.innerHTML = list.map(p => {
+        const photoHTML = p.photo ? `<img src="${p.photo}">` : `<img class="ph-icon" src="${fallbackImg}" onerror="this.style.display='none'">`;
+        const genresHTML = (p.genres || []).map(g => `<span class="chip genre">${esc(g)}</span>`).join('');
+        const fatigue = p.fatigue || 0;
+        const contractHTML = p.contract > 0 ? `<span class="chip contract">Контракт: ${p.contract}</span>` : '';
+        const scandalHTML = p.scandal > 0 ? `<span class="chip scandal">Скандал: ${p.scandal}</span>` : '';
+        const injuryHTML = p.injury > 0 ? `<span class="chip injury">Травма: ${p.injury}</span>` : '';
+        const ampulaHTML = p.ampula ? `<span class="chip type">Амплуа: ${esc(p.ampula)}</span>` : '';
+        const agentHTML = p.agent ? `<span class="chip agent">Агент</span>` : '';
+        const filmsWithActor = state.films.filter(f => f.mainActor?.id === p.id || (f.supportingActors || []).some(sa => sa.id === p.id));
+        const statsHTML = filmsWithActor.length > 0 ? `<span class="chip stat">Фильмов: ${filmsWithActor.length} · Ср. касса: ${fmtMoney(filmsWithActor.reduce((s,f) => s + f.boxOffice, 0) / filmsWithActor.length)}</span>` : '';
+        const fatigueHTML = role === 'actor' ? `<div class="fatigue-badge">Усталость: ${fatigue}%<div class="fatigue-bar"><div class="fatigue-bar-fill" style="width:${fatigue}%"></div></div></div>` : '';
+        const retireBadge = p.retired ? `<div class="retire-badge">На пенсии</div>` : '';
+        const ageHTML = p.age ? `<div class="age-badge">${p.age} лет</div>` : '';
+        return `<div class="person-card"><div class="person-photo">${photoHTML}<div class="rank-badge">Ранг ${p.rank}</div>${ageHTML}<div class="role-badge">${role === 'actor' ? 'Актёр' : 'Режиссёр'}</div>${retireBadge}${fatigueHTML}</div><div class="person-body"><div class="person-name">${esc(p.name)}</div><div class="person-meta">${genresHTML}${ampulaHTML}${agentHTML}${contractHTML}${scandalHTML}${injuryHTML}${statsHTML}</div><div class="person-fee">${fmtMoney(p.baseFee)}</div><div class="person-actions"><button class="btn btn-ghost btn-small" data-edit="${p.id}" data-role="${role}">Изменить</button><button class="btn btn-ghost btn-small" data-toggle-agent="${p.id}" data-role="${role}">${p.agent ? 'Убрать агента' : 'Агент'}</button>${role === 'actor' && !p.retired ? `<button class="btn btn-ghost btn-small" data-rest="${p.id}">Отдых</button>` : ''}${role === 'actor' && !p.retired ? `<button class="btn btn-gold btn-small" data-contract="${p.id}">Контракт</button>` : ''}<button class="btn btn-ghost btn-small" data-del="${p.id}" data-role="${role}">Удалить</button></div></div></div>`;
+    }).join('');
+}
+
+function renderWriters() {
+    const grid = document.getElementById('writersGrid');
+    if (!grid) return;
+    if (state.writers.length === 0) {
+        grid.innerHTML = `<div class="empty"><strong>Пока никого</strong><p>Добавьте сценаристов</p></div>`;
+        return;
+    }
+    grid.innerHTML = state.writers.map(w => {
+        const genresHTML = (w.genres || []).map(g => `<span class="chip genre">${esc(g)}</span>`).join('');
+        const filmsWithWriter = state.films.filter(f => f.writer?.id === w.id);
+        const statsHTML = filmsWithWriter.length > 0 ? `<span class="chip stat">Фильмов: ${filmsWithWriter.length}</span>` : '';
+        const avgRating = filmsWithWriter.length > 0 ? (filmsWithWriter.reduce((s,f) => s + parseFloat(f.rating), 0) / filmsWithWriter.length).toFixed(1) : '—';
+        return `<div class="person-card"><div class="person-photo" style="aspect-ratio:1/0.7;background:linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.05));"><div style="font-size:48px;font-weight:900;color:#d8b4fe;">${esc(w.name.charAt(0))}</div><div class="rank-badge">Ранг ${w.rank}</div><div class="role-badge" style="background:rgba(168,85,247,0.9);">Сценарист</div>${w.age ? `<div class="age-badge">${w.age} лет</div>` : ''}</div><div class="person-body"><div class="person-name">${esc(w.name)}</div><div class="person-meta">${genresHTML}${statsHTML}${filmsWithWriter.length > 0 ? `<span class="chip stat">Ср. рейтинг: ${avgRating}</span>` : ''}</div><div class="person-fee">${fmtMoney(w.baseFee)}</div><div class="person-actions"><button class="btn btn-ghost btn-small" data-edit="${w.id}" data-role="writer">Изменить</button><button class="btn btn-ghost btn-small" data-del="${w.id}" data-role="writer">Удалить</button></div></div></div>`;
+    }).join('');
+}
+
+function renderStats() {
+    const row = document.getElementById('statsRow');
+    if (!row) return;
+    const totalBox = state.films.reduce((s,f) => s + f.boxOffice, 0);
+    const totalFee = state.films.reduce((s,f) => s + f.totalFee, 0);
+    const avgRating = state.films.length ? (state.films.reduce((s,f) => s + parseFloat(f.rating), 0) / state.films.length).toFixed(1) : '—';
+    const oscars = state.films.filter(f => f.oscar).length;
+    row.innerHTML = `<div class="stat-card"><div class="stat-label">Фильмов</div><div class="stat-val">${state.films.length}</div></div><div class="stat-card"><div class="stat-label">Касса</div><div class="stat-val">${fmtMoney(totalBox)}</div></div><div class="stat-card"><div class="stat-label">Расходы</div><div class="stat-val">${fmtMoney(totalFee)}</div></div><div class="stat-card"><div class="stat-label">Ср. рейтинг</div><div class="stat-val">${avgRating}</div></div><div class="stat-card"><div class="stat-label">Оскаров</div><div class="stat-val">${oscars}</div></div><div class="stat-card"><div class="stat-label">Сезон</div><div class="stat-val">${state.season}</div></div>`;
+}
+
+function renderAchievements() {
+    const grid = document.getElementById('achievementsGrid');
+    if (!grid) return;
+    grid.innerHTML = ACHIEVEMENTS.map(a => {
+        const unlocked = state.achievements.includes(a.id);
+        return `<div class="ach-card ${unlocked ? 'unlocked' : ''}"><div class="ach-icon">${unlocked ? '★' : '☆'}</div><div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div></div>`;
+    }).join('');
+}
+
+function renderLeaderboard() {
+    const lb = document.getElementById('leaderboard');
+    if (!lb) return;
+    const all = [
+        { name: state.design.studioName || 'BizarFilm', budget: state.budget, films: state.films.length, reputation: state.reputation, you: true, id: 'you' },
+        ...state.competitors.map(c => ({ name: c.name, budget: c.budget, films: c.films, reputation: c.reputation, you: false, id: c.id }))
+    ].sort((a,b) => b.reputation - a.reputation || b.budget - a.budget);
+    lb.innerHTML = all.map((c, i) => `<div class="leader-row ${c.you ? 'you' : ''}" data-studio-id="${c.id}"><div class="leader-rank">#${i+1}</div><div class="leader-info"><div class="leader-name">${esc(c.name)}${c.you ? ' (вы)' : ''}</div><div class="leader-meta">${c.films} фильмов<span class="sep">·</span>${fmtMoney(c.budget)}</div></div><div class="leader-val"><div class="rep-val">${c.reputation}</div><div class="bud-val">${fmtMoney(c.budget)}</div><div class="open-hint">Открыть →</div></div></div>`).join('');
+}
+
+function openStudioDetail(studioId) {
+    const modal = document.getElementById('modalContent');
+    if (studioId === 'you') { modal.innerHTML = `<h2>Ваша студия</h2><div class="modal-actions"><button class="btn btn-ghost" id="cancelModalBtn">Ок</button></div>`; document.getElementById('modalBg').classList.add('open'); document.getElementById('cancelModalBtn').addEventListener('click', closeModal); return; }
+    const studio = state.competitors.find(c => c.id === studioId);
+    if (!studio) return;
+    const actorsHTML = (studio.actors || []).map(a => `<div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;"><div style="width:40px;height:40px;border-radius:50%;background:#222;overflow:hidden;"><img src="${IMG.actor}" style="width:100%;height:100%;object-fit:contain;padding:6px;opacity:0.5;"></div><div><div style="font-size:13px;font-weight:700;">${esc(a.name)}</div><div style="font-size:11px;color:var(--text-mute);">Ранг ${a.rank} · ${a.age} лет</div></div></div>`).join('');
+    const filmsHTML = (studio.filmList || []).map(f => `<div style="padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;"><div style="font-size:14px;font-weight:800;">${esc(f.title)}</div><div style="font-size:10px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin:4px 0;">${esc(f.genre)}</div><div style="font-size:12px;color:var(--text-dim);line-height:1.5;">${esc((f.plot||'').slice(0,200))}${(f.plot||'').length>200?'...':''}</div></div>`).join('');
+    modal.innerHTML = `<h2>${esc(studio.name)}</h2><div style="font-size:12px;color:var(--text-mute);margin-bottom:14px;">Репутация: ${studio.reputation} · Фильмов: ${studio.films} · Бюджет: ${fmtMoney(studio.budget)}</div><div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Актёры</div>${actorsHTML}<div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;">Фильмы</div>${filmsHTML}<div class="modal-actions"><button class="btn btn-ghost" id="cancelModalBtn">Закрыть</button></div>`;
+    document.getElementById('modalBg').classList.add('open');
+    document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+}
+
+function renderBank() {
+    const grid = document.getElementById('bankGrid');
+    if (grid) grid.innerHTML = LOAN_TYPES.map(l => `<div class="bank-card"><div class="bank-card-title">${l.name}</div><div class="bank-card-desc">${l.desc}</div><div class="bank-card-rate">${fmtMoney(l.amount)} · ${Math.round(l.rate*100)}% · ${l.term} фильмов</div><button class="btn" data-loan="${l.id}">Взять</button></div>`).join('');
+    const active = document.getElementById('activeLoans');
+    if (active) {
+        if (state.loans.length === 0) active.innerHTML = `<div style="color:var(--text-mute);font-size:12px;font-style:italic;">Нет активных кредитов</div>`;
+        else active.innerHTML = state.loans.map(l => `<div class="active-loan"><div class="active-loan-title">${l.name}</div><div class="active-loan-desc">К возврату: ${fmtMoney(l.totalDebt)} · Осталось: ${l.remaining}</div><div style="margin-top:8px;"><button class="btn btn-small" data-payloan="${l.id}">Погасить</button></div></div>`).join('');
+    }
+}
+
+function renderInvestors() {
+    const grid = document.getElementById('investorsGrid');
+    if (!grid) return;
+    const currentShare = state.investors.reduce((s, i) => s + i.share, 0);
+    const freeShare = 100 - currentShare;
+    const maxReached = state.investors.length >= 3;
+    grid.innerHTML = INVESTOR_TYPES.map(i => {
+        const wouldExceed = currentShare + i.share > 100;
+        const disabled = wouldExceed || maxReached;
+        let status = '';
+        if (maxReached) status = 'Лимит 3';
+        else if (wouldExceed) status = `Свободно ${freeShare}%`;
+        return `<div class="bank-card" style="${disabled ? 'opacity:0.5;' : ''}"><div class="bank-card-title">${i.name} — ${i.share}%</div><div class="bank-card-desc">${i.bonusDesc}</div><div class="bank-card-rate">${fmtMoney(i.amount)}</div>${status ? `<div style="font-size:11px;color:#fca5a5;margin-bottom:8px;">${status}</div>` : ''}<button class="btn" data-invest="${i.id}" ${disabled ? 'disabled' : ''}>Продать</button></div>`;
+    }).join('');
+    const active = document.getElementById('activeInvestors');
+    if (!active) return;
+    if (state.investors.length === 0) active.innerHTML = `<div style="color:var(--text-mute);font-size:12px;font-style:italic;">Нет инвесторов. Свободно 100%.</div>`;
+    else {
+        const bonusSum = state.investors.reduce((s, i) => s + (i.bonus || 0), 0);
+        active.innerHTML = `<div style="margin-bottom:12px;font-size:13px;color:var(--gold);font-weight:700;">Отдано: ${currentShare}% · Свободно: ${freeShare}%</div>${bonusSum > 0 ? `<div style="margin-bottom:12px;font-size:12px;color:#86efac;">Бонус к кассе: +${Math.round(bonusSum * 100)}%</div>` : ''}${state.investors.map(i => `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;gap:10px;flex-wrap:wrap;"><div><div style="font-size:13px;font-weight:700;">${esc(i.name)} — ${i.share}%</div><div style="font-size:11px;color:var(--text-mute);">${i.bonusDesc || ''}</div></div><button class="btn btn-gold btn-small" data-buyback="${i.id}">Выкупить за ${fmtMoney(i.buybackPrice)}</button></div>`).join('')}`;
+    }
+}
+
+function renderSubsPanel() {
+    const grid = document.getElementById('subGrid');
+    if (!grid) return;
+    grid.innerHTML = PACKS.map(p => `<div class="sub-card ${p.featured ? 'featured' : ''}"><div class="sub-name">${p.name}</div><div class="sub-price">${p.price} <small>₽</small></div><div class="sub-gen"><strong>${p.gen}</strong> генераций</div><ul class="sub-features">${p.features.map(f => `<li>${f}</li>`).join('')}</ul><button class="btn sub-btn" data-buy="${p.id}">Купить</button></div>`).join('');
+}
+
+function openPersonModal(role, person) {
+    const isEdit = !!person;
+    const p = person || { id: uid(), name: '', rank: 0, baseFee: 0, age: 0, genres: [], photo: null, role, fatigue: 0, contract: 0, scandal: 0, injury: 0 };
+    const fallbackImg = role === 'actor' ? IMG.actor : role === 'director' ? IMG.director : IMG.placeholder;
+    const roleName = role === 'actor' ? 'актёра' : role === 'director' ? 'режиссёра' : 'сценариста';
+    const modal = document.getElementById('modalContent');
+    modal.innerHTML = `
+        <h2>${isEdit ? 'Редактировать' : 'Добавить'} ${roleName}</h2>
+        ${role !== 'writer' ? `<div class="form-group"><label>Фото</label><div class="photo-preview" id="photoPreview">${p.photo ? `<img src="${p.photo}">` : `<img class="ph" src="${fallbackImg}" onerror="this.style.display='none'">`}</div><input type="text" id="photoUrlInput" placeholder="URL..." style="margin-bottom:8px;"><input type="file" id="photoFileInput" accept="image/*" style="font-size:12px;padding:8px 0;"></div>` : ''}
+        <div class="form-group"><label>Имя</label><input type="text" id="pName" value="${esc(p.name)}"></div>
+        <div class="form-group"><label>Жанры</label><input type="text" id="pGenres" value="${esc((p.genres||[]).join(', '))}"></div>
+        <div class="form-group"><label>Описание</label><textarea id="pDesc">${esc(p.description || '')}</textarea>${role !== 'writer' ? `<button class="btn btn-blue btn-small" id="genDescBtn" style="margin-top:8px;">✨ Сгенерировать через DeepSeek</button>` : ''}</div>
+        <p style="font-size:11px;color:var(--text-mute);">Ранг, гонорар и возраст — автоматически.</p>
+        <div class="modal-actions"><button class="btn" id="savePersonBtn">${isEdit ? 'Сохранить' : 'Добавить'}</button><button class="btn btn-ghost" id="cancelModalBtn">Отмена</button></div>`;
+    document.getElementById('modalBg').classList.add('open');
+    let currentPhoto = p.photo;
+    const pui = document.getElementById('photoUrlInput');
+    if (pui) pui.addEventListener('input', (e) => { const url = e.target.value.trim(); if (url) { currentPhoto = url; document.getElementById('photoPreview').innerHTML = `<img src="${url}">`; } });
+    const pfi = document.getElementById('photoFileInput');
+    if (pfi) pfi.addEventListener('change', (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => { currentPhoto = ev.target.result; document.getElementById('photoPreview').innerHTML = `<img src="${currentPhoto}">`; };
+        r.readAsDataURL(f);
+    });
+    const gdb = document.getElementById('genDescBtn');
+    if (gdb) gdb.addEventListener('click', async () => {
+        const name = document.getElementById('pName').value.trim();
+        const genres = document.getElementById('pGenres').value.trim();
+        if (!name && !genres) { alert('Введите имя или жанры'); return; }
+        gdb.disabled = true; gdb.innerHTML = '<span class="loader"></span>';
+        try {
+            const raw = await callDeepSeek(`Придумай ПОДРОБНОЕ описание ${roleName} для карточки в киностудии (4-6 предложений).
+Имя: ${name || '—'}, жанры: ${genres || '—'}.
+Опиши: внешность, характер, привычки, амплуа, любимые роли. Сплошной текст, образно.`, 800);
+            document.getElementById('pDesc').value = raw.trim();
+        } catch(e) { alert('Ошибка: ' + e.message); }
+        finally { gdb.disabled = false; gdb.innerHTML = '✨ Сгенерировать через DeepSeek'; }
+    });
+    document.getElementById('savePersonBtn').addEventListener('click', () => {
+        const name = document.getElementById('pName').value.trim();
+        if (!name) { alert('Введите имя'); return; }
+        let rank, baseFee, age;
+        if (isEdit) { rank = p.rank; baseFee = p.baseFee; age = p.age; }
+        else {
+            rank = rand(20, 85);
+            const rankMul = 0.3 + (rank / 100) * 2.7;
+            baseFee = Math.round((10000 + Math.random() * 40000) * rankMul * 3);
+            age = role === 'actor' ? rand(22, 60) : role === 'director' ? rand(35, 70) : rand(25, 65);
+        }
+        const data = { id: p.id, role, name, rank, baseFee, age, genres: document.getElementById('pGenres').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean), photo: currentPhoto, description: document.getElementById('pDesc').value.trim(), fatigue: p.fatigue || 0, contract: p.contract || 0, scandal: p.scandal || 0, injury: p.injury || 0, ampula: p.ampula || null, retired: p.retired || false, agent: p.agent || false };
+        if (isEdit) {
+            const list = role === 'actor' ? state.actors : role === 'director' ? state.directors : state.writers;
+            const idx = list.findIndex(x => x.id === p.id);
+            if (idx >= 0) list[idx] = data;
+        } else (role === 'actor' ? state.actors : role === 'director' ? state.directors : state.writers).push(data);
+        save(); renderAll(); closeModal();
+    });
+    document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+}
+
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+
+function exportGame() {
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'bizarfilm-save-' + Date.now() + '.json'; a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importGame() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'application/json';
+    input.onchange = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const parsed = JSON.parse(ev.target.result);
+                if (!parsed.films || !parsed.actors) throw new Error('Неверный формат');
+                state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+                state.design = Object.assign(JSON.parse(JSON.stringify(DEFAULT_DESIGN)), parsed.design || {});
+                ['actors','directors','writers','films','competitors','achievements','notifications','loans','investors','history'].forEach(k => { if (!Array.isArray(state[k])) state[k] = []; });
+                save(); renderAll();
+                alert('Загружено');
+            } catch(err) { alert('Ошибка: ' + err.message); }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+function renderBuilder() {
+    const paletteRow = document.getElementById('paletteRow');
+    if (paletteRow) paletteRow.innerHTML = PALETTES.map((p, i) => `<div class="palette-chip" data-palette="${i}" style="background: linear-gradient(135deg, ${p.bg}, ${p.card}, ${p.accent});"></div>`).join('');
+    const fontRow = document.getElementById('fontOptions');
+    if (fontRow) fontRow.innerHTML = FONTS.map(f => `<div class="font-option ${state.design.fontTitle === f.id ? 'active' : ''}" data-font="${f.id}" style="font-family: ${f.css};">${f.name}</div>`).join('');
+    const d = state.design;
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    set('nameStudio', d.studioName); set('nameTabFilms', d.tabFilms); set('nameTabActors', d.tabActors);
+    set('nameTabDirectors', d.tabDirectors); set('nameTabWriters', d.tabWriters);
+    set('nameTabBank', d.tabBank); set('nameTabInvestors', d.tabInvestors);
+    set('nameTabStudio', d.tabStudio); set('nameTabChart', d.tabChart);
+    set('nameTabLeaders', d.tabLeaders); set('nameTabSubs', d.tabSubs); set('nameTabRedesign', d.tabRedesign);
+}
+
+function readBuilder() {
+    const get = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    state.design.studioName = get('nameStudio') || 'BizarFilm';
+    state.design.tabFilms = get('nameTabFilms') || 'Фильмы';
+    state.design.tabActors = get('nameTabActors') || 'Актёры';
+    state.design.tabDirectors = get('nameTabDirectors') || 'Режиссёры';
+    state.design.tabWriters = get('nameTabWriters') || 'Сценаристы';
+    state.design.tabBank = get('nameTabBank') || 'Банк';
+    state.design.tabInvestors = get('nameTabInvestors') || 'Инвесторы';
+    state.design.tabStudio = get('nameTabStudio') || 'Студия';
+    state.design.tabChart = get('nameTabChart') || 'Диаграммы';
+    state.design.tabLeaders = get('nameTabLeaders') || 'Лидеры';
+    state.design.tabSubs = get('nameTabSubs') || 'Подписки';
+    state.design.tabRedesign = get('nameTabRedesign') || 'Конструктор';
+}
+
+function applyDesign() {
+    const d = state.design; const root = document.documentElement;
+    root.style.setProperty('--bg', d.bg); root.style.setProperty('--bg-2', d.bg2);
+    root.style.setProperty('--card', d.card); root.style.setProperty('--card-2', d.card);
+    root.style.setProperty('--accent', d.accent); root.style.setProperty('--accent-2', d.accent);
+    root.style.setProperty('--text', d.text);
+    const fontDef = FONTS.find(f => f.id === d.fontTitle) || FONTS[0];
+    root.style.setProperty('--font-title', fontDef.css);
+    const logo = document.querySelector('.logo h1');
+    if (logo) logo.textContent = d.studioName;
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs[0]) tabs[0].innerHTML = d.tabFilms;
+    if (tabs[1]) tabs[1].innerHTML = d.tabActors + ' <span class="count" id="actorsCount">' + state.actors.length + '</span>';
+    if (tabs[2]) tabs[2].innerHTML = d.tabDirectors + ' <span class="count" id="directorsCount">' + state.directors.length + '</span>';
+    if (tabs[3]) tabs[3].innerHTML = d.tabWriters + ' <span class="count" id="writersCount">' + state.writers.length + '</span>';
+    if (tabs[4]) tabs[4].innerHTML = d.tabBank;
+    if (tabs[5]) tabs[5].innerHTML = d.tabInvestors;
+    if (tabs[6]) tabs[6].innerHTML = d.tabStudio;
+    if (tabs[7]) tabs[7].innerHTML = d.tabChart;
+    if (tabs[8]) tabs[8].innerHTML = d.tabLeaders;
+    if (tabs[9]) tabs[9].innerHTML = d.tabSubs;
+    if (tabs[10]) tabs[10].innerHTML = d.tabRedesign;
+}
+
+// ===== ЗАПИСЬ АУДИО =====
+let recognition = null, isRecording = false, isStarting = false, manualStop = false, finalText = '';
+
+function initRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    const r = new SR();
+    r.lang = 'ru-RU'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+    return r;
+}
+
+function setRecUI(recording) {
+    const btn = document.getElementById('recBtn');
+    const status = document.getElementById('recStatus');
+    if (!btn || !status) return;
+    if (recording) { btn.classList.add('recording'); btn.textContent = 'Стоп'; status.textContent = 'Запись...'; }
+    else { btn.classList.remove('recording'); btn.textContent = 'Запись'; status.textContent = ''; }
+}
+
+function stopRecording() {
+    manualStop = true; isStarting = false;
+    if (recognition) { try { recognition.stop(); } catch(e) {} }
+    isRecording = false; setRecUI(false);
+}
+
+function startRecording() {
+    if (isRecording || isStarting) return;
+    if (!recognition) {
+        recognition = initRecognition();
+        if (!recognition) { alert('Браузер не поддерживает'); return; }
+        recognition.onstart = () => { isStarting = false; isRecording = true; manualStop = false; setRecUI(true); };
+        recognition.onresult = (e) => {
+            const input = document.getElementById('filmInput');
+            let interim = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                const t = e.results[i][0].transcript;
+                if (e.results[i].isFinal) finalText += t + ' ';
+                else interim += t;
+            }
+            input.value = ((recognition._base || '') + finalText + interim).trim();
+        };
+        recognition.onerror = (e) => {
+            if (e.error === 'no-speech' || e.error === 'aborted') return;
+            if (e.error === 'not-allowed') { const s = document.getElementById('recStatus'); if (s) s.textContent = 'Микрофон запрещён'; isRecording = false; isStarting = false; setRecUI(false); }
+        };
+        recognition.onend = () => {
+            if (isRecording && !manualStop) { isStarting = true; try { recognition.start(); } catch(e) { isStarting = false; isRecording = false; setRecUI(false); } }
+            else { isRecording = false; isStarting = false; setRecUI(false); }
+        };
+    }
+    const input = document.getElementById('filmInput');
+    recognition._base = input.value.trim() ? input.value.trim() + ' ' : '';
+    finalText = ''; isStarting = true; manualStop = false;
+    try { recognition.start(); }
+    catch(e) { isStarting = false; if (e.message && e.message.includes('already started')) { isRecording = true; setRecUI(true); } }
+}
+
+function toggleRecording() { if (isRecording || isStarting) stopRecording(); else startRecording(); }
+
+// ===== ИНИЦИАЛИЗАЦИЯ =====
+function init() {
+    load();
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+            if (tab.dataset.tab === 'chart') renderCharts();
+            if (tab.dataset.tab === 'redesign') renderBuilder();
+            if (tab.dataset.tab === 'bank') renderBank();
+            if (tab.dataset.tab === 'investors') renderInvestors();
+        });
+    });
+
+    document.getElementById('generateBtn').addEventListener('click', () => {
+        const idea = document.getElementById('filmInput').value;
+        const genre = document.getElementById('genreInput').value;
+        if (!idea.trim() || !genre.trim()) { alert('Введите идею и жанр'); return; }
+        if (state.generations <= 0) { showPaywall(); return; }
+        const manualCast = (castSelection.director && castSelection.mainActor) ? { writer: castSelection.writer, director: castSelection.director, mainActor: castSelection.mainActor, supporting: castSelection.supportingActors, reason: 'Ручной выбор' } : null;
+        createFilm(idea, genre, manualCast);
+    });
+
+    document.getElementById('recBtn').addEventListener('click', toggleRecording);
+    document.getElementById('difficultySelect').addEventListener('change', (e) => { state.difficulty = e.target.value; save(); renderAll(); });
+    document.getElementById('addActorBtn').addEventListener('click', () => openPersonModal('actor', null));
+    document.getElementById('addDirectorBtn').addEventListener('click', () => openPersonModal('director', null));
+    document.getElementById('addWriterBtn').addEventListener('click', () => openPersonModal('writer', null));
+    document.getElementById('marketingSelect').addEventListener('change', (e) => { state.marketing = e.target.value; save(); });
+    document.getElementById('buyMiniBtn').addEventListener('click', showPaywall);
+    document.getElementById('genDisplay').addEventListener('click', showPaywall);
+    document.getElementById('exportBtn').addEventListener('click', exportGame);
+    document.getElementById('importBtn').addEventListener('click', importGame);
+    document.getElementById('pickWriterBtn').addEventListener('click', () => openRolePicker('writer'));
+    document.getElementById('pickDirectorBtn').addEventListener('click', () => openRolePicker('director'));
+    document.getElementById('pickMainBtn').addEventListener('click', () => openRolePicker('mainActor'));
+    document.getElementById('pickSuppBtn').addEventListener('click', () => openRolePicker('supporting'));
+
+    document.querySelectorAll('[data-budget]').forEach(el => {
+        el.addEventListener('click', () => {
+            document.querySelectorAll('[data-budget]').forEach(x => x.classList.remove('selected'));
+            el.classList.add('selected');
+            state.filmBudget = el.dataset.budget; save();
+        });
+    });
+
+    const paywallClose = document.getElementById('paywallCloseBtn');
+    if (paywallClose) paywallClose.addEventListener('click', () => document.getElementById('paywallScreen').classList.add('hidden'));
+
+    document.getElementById('activateBtn').addEventListener('click', () => {
+        const code = document.getElementById('codeInput').value.trim().toUpperCase();
+        const status = document.getElementById('codeStatus');
+        if (!code) { status.textContent = 'Введите код'; status.style.color = '#ef4444'; return; }
+        if (code === STREAMER_PASSWORD) { state.generations += STREAMER_GENERATIONS; save(); renderHeader(); status.textContent = `+${STREAMER_GENERATIONS} генераций!`; status.style.color = '#22c55e'; document.getElementById('codeInput').value = ''; return; }
+        status.textContent = 'Неверный код'; status.style.color = '#ef4444';
+    });
+
+    document.addEventListener('click', (e) => {
+        const studioRow = e.target.closest('[data-studio-id]');
+        if (studioRow) { openStudioDetail(studioRow.dataset.studioId); return; }
+        const loanBtn = e.target.closest('[data-loan]');
+        if (loanBtn) { takeLoan(loanBtn.dataset.loan); return; }
+        const payLoanBtn = e.target.closest('[data-payloan]');
+        if (payLoanBtn) { payLoan(payLoanBtn.dataset.payloan); return; }
+        const investBtn = e.target.closest('[data-invest]');
+        if (investBtn) { takeInvestor(investBtn.dataset.invest); return; }
+        const buybackBtn = e.target.closest('[data-buyback]');
+        if (buybackBtn) { buybackInvestor(buybackBtn.dataset.buyback); return; }
+        const sequelBtn = e.target.closest('[data-sequel]');
+        if (sequelBtn) { makeSequel(sequelBtn.dataset.sequel); return; }
+        const dismissNotif = e.target.closest('[data-dismiss-notif]');
+        if (dismissNotif) { state.notifications = state.notifications.filter(n => n.id !== dismissNotif.dataset.dismissNotif); save(); renderNotifications(); return; }
+        const removeRole = e.target.closest('[data-remove-role]');
+        if (removeRole) {
+            const r = removeRole.dataset.removeRole;
+            if (r === 'writer') castSelection.writer = null;
+            if (r === 'director') castSelection.director = null;
+            if (r === 'mainActor') castSelection.mainActor = null;
+            save(); renderCastRoles(); return;
+        }
+        const removeSupp = e.target.closest('[data-remove-supp]');
+        if (removeSupp) { castSelection.supportingActors.splice(parseInt(removeSupp.dataset.removeSupp), 1); save(); renderCastRoles(); return; }
+        const buyBtn = e.target.closest('[data-buy]');
+        if (buyBtn) { const pack = PACKS.find(p => p.id === buyBtn.dataset.buy); if (!pack) return; window.open('https://dalink.to/asdfysl', '_blank'); alert(`Сумма: ${pack.price} ₽ (${pack.name})`); return; }
+        const editBtn = e.target.closest('[data-edit]');
+        if (editBtn) {
+            const role = editBtn.dataset.role;
+            const list = role === 'actor' ? state.actors : role === 'director' ? state.directors : state.writers;
+            const p = list.find(x => x.id === editBtn.dataset.edit);
+            if (p) openPersonModal(role, p);
+            return;
+        }
+        const delBtn = e.target.closest('[data-del]');
+        if (delBtn) {
+            if (!confirm('Удалить?')) return;
+            const role = delBtn.dataset.role;
+            if (role === 'actor') state.actors = state.actors.filter(x => x.id !== delBtn.dataset.del);
+            else if (role === 'director') state.directors = state.directors.filter(x => x.id !== delBtn.dataset.del);
+            else state.writers = state.writers.filter(x => x.id !== delBtn.dataset.del);
+            save(); renderAll(); return;
+        }
+        const toggleAgentBtn = e.target.closest('[data-toggle-agent]');
+        if (toggleAgentBtn) {
+            const role = toggleAgentBtn.dataset.role;
+            const list = role === 'actor' ? state.actors : state.directors;
+            const p = list.find(x => x.id === toggleAgentBtn.dataset.toggleAgent);
+            if (!p) return;
+            if (p.agent) { p.agent = false; alert('Агент уволен'); }
+            else { const cost = 100000; if (state.budget < cost) { alert('Нужно 100K $'); return; } state.budget -= cost; p.agent = true; alert('Агент нанят.'); }
+            save(); renderAll(); return;
+        }
+        const restBtn = e.target.closest('[data-rest]');
+        if (restBtn) { restActor(restBtn.dataset.rest); return; }
+        const contractBtn = e.target.closest('[data-contract]');
+        if (contractBtn) { signContract(contractBtn.dataset.contract); return; }
+        const keepBtn = e.target.closest('[data-steal-keep]');
+        if (keepBtn) { resolveSteal(keepBtn.dataset.stealKeep, 'keep'); return; }
+        const releaseBtn = e.target.closest('[data-steal-release]');
+        if (releaseBtn) { resolveSteal(releaseBtn.dataset.stealRelease, 'release'); return; }
+        const scandalFix = e.target.closest('[data-scandal-fix]');
+        if (scandalFix) { resolveScandal(scandalFix.dataset.scandalFix, 'fix'); return; }
+        const scandalIgnore = e.target.closest('[data-scandal-ignore]');
+        if (scandalIgnore) { resolveScandal(scandalIgnore.dataset.scandalIgnore, 'ignore'); return; }
+        const injuryTreat = e.target.closest('[data-injury-treat]');
+        if (injuryTreat) { resolveInjury(injuryTreat.dataset.injuryTreat, 'treat'); return; }
+        const injuryWait = e.target.closest('[data-injury-wait]');
+        if (injuryWait) { resolveInjury(injuryWait.dataset.injuryWait, 'wait'); return; }
+    });
+
+    document.getElementById('applyBuilderBtn').addEventListener('click', () => { readBuilder(); applyDesign(); save(); alert('Тема применена'); });
+    document.getElementById('resetDesignBtn').addEventListener('click', () => {
+        state.design = JSON.parse(JSON.stringify(DEFAULT_DESIGN));
+        renderBuilder(); applyDesign(); save();
+    });
+
+    document.addEventListener('click', (e) => {
+        const chip = e.target.closest('[data-palette]');
+        if (chip) {
+            const p = PALETTES[parseInt(chip.dataset.palette)];
+            state.design.bg = p.bg; state.design.bg2 = p.bg2; state.design.card = p.card; state.design.accent = p.accent; state.design.text = p.text;
+            save(); applyDesign(); return;
+        }
+        const fontBtn = e.target.closest('[data-font]');
+        if (fontBtn) {
+            state.design.fontTitle = fontBtn.dataset.font;
+            document.querySelectorAll('.font-option').forEach(x => x.classList.remove('active'));
+            fontBtn.classList.add('active');
+            save(); applyDesign(); return;
+        }
+    });
+
+    document.getElementById('modalBg').addEventListener('click', (e) => { if (e.target.id === 'modalBg') closeModal(); });
+
+    renderAll();
+    renderBuilder();
+    renderBank();
+    renderInvestors();
+    renderCharts();
+}
+
+init();
+})();
+</script>
+</body>
+</html>
